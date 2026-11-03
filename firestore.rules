@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Plan data: users can READ their own; only the server (Admin SDK) can write.
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+    // Saved resume: owner only, one document, size-capped.
+    match /resumes/{uid} {
+      allow read, delete: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['state', 'updatedAt'])
+        && request.resource.data.state is string
+        && request.resource.data.state.size() < 800000;
+    }
+    // AI usage counters: server only.
+    match /aiUsage/{id} { allow read, write: if false; }
+    // Payment records: server only.
+    match /payments/{id} { allow read, write: if false; }
+  }
+}
