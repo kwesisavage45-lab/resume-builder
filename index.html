@@ -302,8 +302,8 @@
                             <input type="text" id="field-location" oninput="renderResume()" class="w-full border-2 border-slate-900 dark:border-slate-100 bg-slate-50 dark:bg-slate-900 p-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="San Francisco, CA">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase mb-1">LinkedIn / Portfolio URL</label>
-                            <input type="text" id="field-website" oninput="renderResume()" class="w-full border-2 border-slate-900 dark:border-slate-100 bg-slate-50 dark:bg-slate-900 p-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="linkedin.com/in/alexmorgan">
+                            <label class="block text-xs font-bold uppercase mb-1">LinkedIn / Portfolio URL <span class="font-normal text-slate-500">(optional)</span></label>
+                            <input type="text" id="field-website" oninput="renderResume()" class="w-full border-2 border-slate-900 dark:border-slate-100 bg-slate-50 dark:bg-slate-900 p-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Optional: linkedin.com/in/alexmorgan">
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold uppercase mb-1">Professional Summary</label>
@@ -585,7 +585,7 @@
                         <input type="text" placeholder="Dates (e.g. 2020 - Present)" value="${exp.dates}" oninput="updateExpField('${exp.id}', 'dates', this.value)" class="border border-slate-900 dark:border-slate-100 p-1.5 text-xs font-medium dark:bg-slate-800">
                         <input type="text" placeholder="Location" value="${exp.location}" oninput="updateExpField('${exp.id}', 'location', this.value)" class="border border-slate-900 dark:border-slate-100 p-1.5 text-xs font-medium dark:bg-slate-800">
                     </div>
-                    <textarea placeholder="Bullet points or key responsibilities..." oninput="updateExpField('${exp.id}', 'description', this.value)" rows="3" class="w-full border border-slate-900 dark:border-slate-100 p-1.5 text-xs font-medium dark:bg-slate-800">${exp.description}</textarea>
+                    <textarea placeholder="Optional expertise or achievements — one item per line if you want bullets" oninput="updateExpField('${exp.id}', 'description', this.value)" rows="3" class="w-full border border-slate-900 dark:border-slate-100 p-1.5 text-xs font-medium dark:bg-slate-800">${exp.description}</textarea>
                 `;
                 container.appendChild(card);
             });
@@ -683,7 +683,7 @@
                     <div class="font-extrabold text-xs uppercase text-blue-600">Project #${index + 1}</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <input type="text" placeholder="Project Name" value="${proj.title}" oninput="updateProjField('${proj.id}', 'title', this.value)" class="border border-slate-900 dark:border-slate-100 p-1.5 text-xs font-medium dark:bg-slate-800">
-                        <input type="text" placeholder="Link / Repository URL" value="${proj.link}" oninput="updateProjField('${proj.id}', 'link', this.value)" class="border border-slate-900 dark:border-slate-100 p-1.5 text-xs font-medium dark:bg-slate-800">
+                        <input type="text" placeholder="Optional link / repository URL" value="${proj.link}" oninput="updateProjField('${proj.id}', 'link', this.value)" class="border border-slate-900 dark:border-slate-100 p-1.5 text-xs font-medium dark:bg-slate-800">
                     </div>
                     <textarea placeholder="Short project description..." oninput="updateProjField('${proj.id}', 'description', this.value)" rows="2" class="w-full border border-slate-900 dark:border-slate-100 p-1.5 text-xs font-medium dark:bg-slate-800">${proj.description}</textarea>
                 `;
@@ -1139,7 +1139,7 @@
 
     function ensureShape() {
         const r = resumeState;
-        r.config = Object.assign({template:'modern', font:'font-sans-inter', accentColor:'#2563eb', scale:1, spacing:'', tint:false, bullets:false, customDraft:false, sectionOrder:'profile,experience,education,skills,projects'}, r.config);
+        r.config = Object.assign({template:'modern', font:'font-sans-inter', accentColor:'#2563eb', scale:1, spacing:'', tint:false, bullets:false, skillStyle:'boxes', expertiseStyle:'plain', customDraft:false, sectionOrder:'profile,experience,education,skills,projects'}, r.config);
         r.personal = Object.assign({fullName:'',jobTitle:'',email:'',phone:'',location:'',website:'',summary:''}, r.personal);
         for (const k in FIELDS) r[k] = (Array.isArray(r[k]) ? r[k] : []).map(it => {
             const o = {id: (it && it.id) ? String(it.id) : uid(k)};
@@ -1282,10 +1282,26 @@
     }
 
     function downloadWord() {
-        const paper = document.getElementById('resume-paper');
-        if (!paper) return showToast('Resume preview is not ready yet.');
-        const name = ((resumeState.personal.fullName || 'resume').trim().replace(/\s+/g, '-').toLowerCase());
-        const html = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta charset="utf-8"><title>${name}</title><style>@page{margin:0.7in}body{font-family:Arial,sans-serif;color:#111;margin:36px;line-height:1.45}h1{font-size:28px;margin:0 0 6px}h2{font-size:14px;text-transform:uppercase;border-bottom:2px solid #111;padding-bottom:4px;margin-top:20px}h3{font-size:13px;margin-bottom:2px}p,li,div{font-size:11px}img{max-width:160px;max-height:160px;object-fit:cover}</style></head><body>${paper.innerHTML}</body></html>`;
+        ensureShape();
+        const r = resumeState, p = r.personal, escW = v => esc(v || ''), linesW = v => String(v || '').split('\n').map(x => x.trim()).filter(Boolean);
+        const name = ((p.fullName || 'resume').trim().replace(/\s+/g, '-').toLowerCase());
+        const sectionW = (title, body) => body ? `<h2>${escW(title)}</h2>${body}` : '';
+        const bulletsW = text => { const a = linesW(text); return a.length ? `<ul>${a.map(x => `<li>${escW(x.replace(/^[-*•]\s*/, ''))}</li>`).join('')}</ul>` : ''; };
+        const paragraphW = text => linesW(text).map(x => `<p>${escW(x)}</p>`).join('');
+        const contactW = [p.email, p.phone, p.location, p.website].filter(v => String(v || '').trim()).map(escW).join(' &nbsp;|&nbsp; ');
+        const photoW = r.photo ? `<p><img src="${r.photo}" alt="Profile photo" width="120" height="120"></p>` : '';
+        const summaryW = p.summary.trim() ? sectionW('Profile', `<p>${escW(p.summary)}</p>`) : '';
+        const expertiseW = text => { const a = linesW(text).map(x => x.replace(/^[-*•]\s*/, '')); if (!a.length) return ''; const mode = r.config.expertiseStyle || (r.config.bullets ? 'bullets' : 'plain'); if (mode === 'bullets') return `<ul>${a.map(x => `<li>${escW(x)}</li>`).join('')}</ul>`; if (mode === 'boxes') return `<p>${a.map(x => `<span class="box">${escW(x)}</span>`).join(' ')}</p>`; return a.map(x => `<p>${escW(x)}</p>`).join(''); };
+        const experienceW = r.experience.length ? sectionW('Experience', r.experience.map(e => `<div class="entry"><h3>${escW(e.jobTitle || 'Experience')}</h3><p><strong>${escW([e.company, e.location].filter(Boolean).join(' | '))}</strong>${e.dates ? ` &nbsp; ${escW(e.dates)}` : ''}</p>${expertiseW(e.description)}</div>`).join('')) : '';
+        const educationW = r.education.length ? sectionW('Education', r.education.map(e => `<div class="entry"><h3>${escW(e.degree)}</h3><p>${escW([e.school, e.dates, e.details].filter(Boolean).join(' | '))}</p></div>`).join('')) : '';
+        const projectsW = r.projects.length ? sectionW('Projects', r.projects.map(e => `<div class="entry"><h3>${escW(e.title)}</h3>${e.link ? `<p><a href="${escW(e.link)}">${escW(e.link)}</a></p>` : ''}${e.description ? `<p>${escW(e.description)}</p>` : ''}</div>`).join('')) : '';
+        const skillsModeW = r.config.skillStyle || 'boxes';
+        const skillsW = r.skills.length ? sectionW('Skills', skillsModeW === 'bullets' ? `<ul>${r.skills.map(x => `<li>${escW(x)}</li>`).join('')}</ul>` : skillsModeW === 'boxes' ? `<p>${r.skills.map(x => `<span class="box">${escW(x)}</span>`).join(' ')}</p>` : `<p>${r.skills.map(escW).join(' &nbsp; · &nbsp; ')}</p>`) : '';
+        const languagesW = r.extras.languages.trim() ? sectionW('Languages', bulletsW(r.extras.languages)) : '';
+        const certsW = r.extras.certifications.trim() ? sectionW('Certifications', bulletsW(r.extras.certifications)) : '';
+        const interestsW = r.extras.interests && r.extras.interests.trim() ? sectionW('Interests', bulletsW(r.extras.interests)) : '';
+        const cvW = r.mode === 'cv' && r.cv ? sectionW('Personal Details', Object.entries(r.cv).filter(([k,v]) => v && !['declaration'].includes(k)).map(([k,v]) => `<p><strong>${escW(k.replace(/([A-Z])/g, ' $1'))}:</strong> ${escW(v)}</p>`).join('')) : '';
+        const html = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta charset="utf-8"><title>${escW(name)}</title><style>@page{margin:0.7in}body{font-family:Arial,sans-serif;color:#111;margin:0;line-height:1.45;max-width:7in}h1{font-size:25px;margin:0 0 4px;color:#111}h2{font-size:14px;text-transform:uppercase;border-bottom:1px solid #222;padding-bottom:4px;margin:22px 0 8px}h3{font-size:12px;margin:8px 0 2px}p,li{font-size:10.5pt;margin:3px 0}ul{margin:4px 0 8px 20px;padding:0}.entry{margin-bottom:10px}.box{display:inline-block;border:1px solid #777;padding:3px 6px;margin:2px 3px 2px 0}a{color:#111;text-decoration:underline}img{max-width:120px;max-height:120px}</style></head><body>${photoW}<h1>${escW(p.fullName || 'Your Name')}</h1>${p.jobTitle ? `<p><strong>${escW(p.jobTitle)}</strong></p>` : ''}${contactW ? `<p>${contactW}</p>` : ''}${cvW}${summaryW}${experienceW}${educationW}${projectsW}${skillsW}${languagesW}${certsW}${interestsW}</body></html>`;
         const blob = new Blob(['\ufeff', html], {type:'application/msword;charset=utf-8'});
         const url = URL.createObjectURL(blob), a = document.createElement('a');
         a.href = url; a.download = name + '.doc'; document.body.appendChild(a); a.click(); a.remove();
@@ -1307,6 +1323,56 @@
             } catch (e) { showToast('That file is not a valid resume backup.'); }
         };
         rd.readAsText(file);
+    }
+
+    function importDocument(file) {
+        if (!file) return;
+        const rd = new FileReader();
+        rd.onload = () => {
+            let text = String(rd.result || '');
+            if (/\.html?$/i.test(file.name) || /\.doc$/i.test(file.name)) {
+                const doc = new DOMParser().parseFromString(text, 'text/html');
+                text = doc.body ? doc.body.innerText : text.replace(/<[^>]+>/g, ' ');
+            }
+            parseImportedText(text, file.name);
+        };
+        rd.onerror = () => showToast('Could not read that document.');
+        rd.readAsText(file);
+    }
+
+    function parseImportedText(raw, sourceName) {
+        const lines = String(raw || '').replace(/\r/g, '').split('\n').map(x => x.trim()).filter(Boolean);
+        if (!lines.length) return showToast('That document does not contain readable text.');
+        const r = resumeState;
+        ensureShape();
+        const sectionNames = {summary:'summary', profile:'summary', objective:'summary', experience:'experience', 'work experience':'experience', employment:'experience', education:'education', skills:'skills', expertise:'skills', projects:'projects', languages:'languages', certifications:'certifications'};
+        let current = 'header', buckets = {header:[], summary:[], experience:[], education:[], skills:[], projects:[], languages:[], certifications:[]};
+        lines.forEach(line => {
+            const key = line.toLowerCase().replace(/[:#]/g, '').trim();
+            const match = sectionNames[key];
+            if (match) current = match;
+            else buckets[current].push(line);
+        });
+        const header = buckets.header;
+        if (header[0]) r.personal.fullName = header[0];
+        if (header[1] && !/@|\+?\d[\d\s().-]{5,}/.test(header[1])) r.personal.jobTitle = header[1];
+        const contactLine = header.slice(1).join(' | ');
+        const email = contactLine.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i); if (email) r.personal.email = email[0];
+        const phone = contactLine.match(/\+?[\d][\d\s().-]{6,}/); if (phone) r.personal.phone = phone[0].trim();
+        if (buckets.summary.length) r.personal.summary = buckets.summary.join(' ');
+        if (buckets.skills.length) r.skills = buckets.skills.join('\n').split(/[,|•]/).map(x => x.replace(/^[-*]\s*/, '').trim()).filter(Boolean);
+        if (buckets.languages.length) r.extras.languages = buckets.languages.map(x => x.replace(/^[-*•]\s*/, '')).join('\n');
+        if (buckets.certifications.length) r.extras.certifications = buckets.certifications.map(x => x.replace(/^[-*•]\s*/, '')).join('\n');
+        if (buckets.experience.length) r.experience = [{id: uid('experience'), jobTitle:'', company:'', dates:'', location:'', description:buckets.experience.map(x => x.replace(/^[-*•]\s*/, '')).join('\n')}];
+        if (buckets.education.length) r.education = [{id: uid('education'), degree:buckets.education[0] || '', school:buckets.education[1] || '', dates:buckets.education[2] || '', details:buckets.education.slice(3).join(' ')}];
+        if (buckets.projects.length) r.projects = [{id: uid('projects'), title:buckets.projects[0] || '', link:'', description:buckets.projects.slice(1).map(x => x.replace(/^[-*•]\s*/, '')).join(' ')}];
+        fillAll();
+        save();
+        showToast('Document imported into editable fields');
+    }
+
+    function pasteDocumentText() {
+        modal(`<h2 class="text-lg font-black uppercase mb-2">Import text</h2><p class="text-xs text-slate-600 mb-3">Paste your CV or resume text. Use headings such as Summary, Experience, Education, Skills, Projects, Languages, or Certifications for better organization.</p><textarea id="paste-import-text" rows="12" class="w-full border-2 border-slate-900 dark:border-slate-100 bg-slate-50 dark:bg-slate-900 p-2 text-xs"></textarea><button onclick="parseImportedText(document.getElementById('paste-import-text').value, 'pasted text');closeModal()" class="w-full mt-3 py-3 bg-blue-600 text-white border-2 border-slate-900 font-black uppercase">Import into editor</button>`);
     }
 
     function copyText() {
@@ -1342,8 +1408,9 @@
         const cls = 'px-3 py-2 text-xs font-bold bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-2 border-slate-900 dark:border-slate-100 shadow-neo-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all';
         document.querySelector('header button[onclick="printResume()"]').insertAdjacentHTML('beforebegin',
             `<button onclick="copyText()" class="${cls}" title="Copy as plain text for application forms"><i class="fa-solid fa-copy md:mr-1"></i><span class="hidden md:inline">Copy text</span></button>
-             <button onclick="document.getElementById('import-file').click()" class="${cls}" title="Restore from a JSON resume file"><i class="fa-solid fa-upload md:mr-1"></i><span class="hidden md:inline">Import</span></button>
-             <input type="file" id="import-file" accept="application/json,.json" class="hidden" onchange="importJSON(this.files[0]); this.value=''">`);
+             <button onclick="document.getElementById('import-doc-file').click()" class="${cls}" title="Import text, HTML, or Word-compatible document"><i class="fa-solid fa-file-import md:mr-1"></i><span class="hidden md:inline">Import document</span></button>
+             <button onclick="pasteDocumentText()" class="${cls}" title="Paste resume or CV text into editable fields"><i class="fa-solid fa-paste md:mr-1"></i><span class="hidden md:inline">Paste text</span></button>
+             <input type="file" id="import-doc-file" accept=".txt,.doc,.html,.htm,text/plain,text/html" class="hidden" onchange="importDocument(this.files[0]); this.value=''">`);
         document.querySelector('header button[onclick="printResume()"]').insertAdjacentHTML('afterend',
              `<button onclick="downloadWord()" class="${cls} bg-emerald-300" title="Download a Word-compatible .doc document"><i class="fa-solid fa-file-word md:mr-1"></i><span class="hidden md:inline">Word (.doc)</span></button>`);
         document.getElementById('config-template').closest('.grid').insertAdjacentHTML('beforeend',
@@ -1419,6 +1486,8 @@
         c.spacing = $$('adv-spacing') ? $$('adv-spacing').value : (c.spacing || '');
         c.tint = $$('adv-tint') ? $$('adv-tint').checked : !!c.tint;
         c.bullets = $$('adv-bullets') ? $$('adv-bullets').checked : !!c.bullets;
+        c.skillStyle = $$('skill-display') ? $$('skill-display').value : (c.skillStyle || 'boxes');
+        c.expertiseStyle = $$('expertise-display') ? $$('expertise-display').value : (c.expertiseStyle || 'plain');
         c.customDraft = $$('adv-custom') ? $$('adv-custom').checked : !!c.customDraft;
         c.sectionOrder = $$('draft-order') ? $$('draft-order').value : (c.sectionOrder || 'profile,experience,education,skills,projects');
         if (c.customDraft) c.template = resumeState.mode === 'cv' ? 'cvcustom' : 'custom';
@@ -1435,6 +1504,8 @@
         if ($$('adv-spacing')) $$('adv-spacing').value = c.spacing || '';
         if ($$('adv-tint')) $$('adv-tint').checked = !!c.tint;
         if ($$('adv-bullets')) $$('adv-bullets').checked = !!c.bullets;
+        if ($$('skill-display')) $$('skill-display').value = c.skillStyle || 'boxes';
+        if ($$('expertise-display')) $$('expertise-display').value = c.expertiseStyle || 'plain';
         if ($$('adv-custom')) $$('adv-custom').checked = !!c.customDraft;
         if ($$('draft-order')) $$('draft-order').value = c.sectionOrder || 'profile,experience,education,skills,projects';
         const th = $$('photo-thumb'); if (th) th.innerHTML = real.photo ? `<img src="${real.photo}" alt="Profile photo" class="w-full h-full object-cover">` : '<i class="fa-solid fa-user text-slate-400"></i>';
@@ -1456,13 +1527,15 @@
     const plainSec = (t, b) => b ? `<section class="mb-5"><h2 class="text-xs font-black uppercase tracking-widest mb-2" style="color:var(--ac)">${t}</h2>${b}</section>` : '';
     const sum = r => r.personal.summary ? `<p class="text-xs leading-relaxed text-slate-800">${r.personal.summary}</p>` : '';
     const pic = (r, cls) => r.photo ? `<img src="${r.photo}" alt="Profile photo" class="${cls} object-cover shrink-0">` : '';
-    const jobHead = e => `<div class="flex justify-between items-baseline gap-2"><h3 class="font-bold text-sm">${e.jobTitle || 'Job Title'}</h3><span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">${e.dates}</span></div><div class="text-xs font-semibold text-slate-600">${[e.company, e.location].filter(Boolean).join(' | ')}</div>${resumeState.config.bullets ? `<ul class="list-disc pl-5 text-xs text-slate-700 leading-relaxed mt-1">${bulletLines(e.description)}</ul>` : `<p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line mt-1">${e.description}</p>`}`;
+    const expertiseDisplay = text => { const a = String(text || '').split('\n').map(x => x.trim()).filter(Boolean).map(x => x.replace(/^[-*•]\s*/, '')); if (!a.length) return ''; const mode = resumeState.config.expertiseStyle || (resumeState.config.bullets ? 'bullets' : 'plain'); if (mode === 'bullets') return `<ul class="list-disc pl-5 text-xs text-slate-700 leading-relaxed mt-1">${a.map(x => `<li>${x}</li>`).join('')}</ul>`; if (mode === 'boxes') return `<div class="flex flex-wrap gap-1.5 mt-1">${a.map(x => `<span class="border border-slate-500 px-2 py-1 text-xs">${x}</span>`).join('')}</div>`; return `<div class="text-xs text-slate-700 leading-relaxed mt-1">${a.join('<br>')}</div>`; };
+    const jobHead = e => `<div class="flex justify-between items-baseline gap-2"><h3 class="font-bold text-sm">${e.jobTitle || 'Job Title'}</h3><span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">${e.dates}</span></div><div class="text-xs font-semibold text-slate-600">${[e.company, e.location].filter(Boolean).join(' | ')}</div>${expertiseDisplay(e.description)}`;
     const bulletLines = text => String(text || '').split('\n').map(x => x.trim()).filter(Boolean).map(x => `<li>${x.replace(/^[-*•]\s*/, '')}</li>`).join('');
-    const bulletExp = r => r.experience.length ? `<div class="space-y-4">${r.experience.map(e => `<div class="break-inside-avoid"><div class="flex justify-between items-baseline gap-2"><h3 class="font-bold text-sm">${e.jobTitle || 'Job Title'}</h3><span class="text-[11px] font-semibold text-slate-500">${e.dates}</span></div><div class="text-xs font-semibold text-slate-600">${[e.company,e.location].filter(Boolean).join(' | ')}</div>${e.description ? `<ul class="list-disc pl-5 text-xs text-slate-700 leading-relaxed mt-1">${bulletLines(e.description)}</ul>` : ''}</div>`).join('')}</div>` : '';
+    const bulletExp = r => r.experience.length ? `<div class="space-y-4">${r.experience.map(e => `<div class="break-inside-avoid"><div class="flex justify-between items-baseline gap-2"><h3 class="font-bold text-sm">${e.jobTitle || 'Job Title'}</h3><span class="text-[11px] font-semibold text-slate-500">${e.dates}</span></div><div class="text-xs font-semibold text-slate-600">${[e.company,e.location].filter(Boolean).join(' | ')}</div>${expertiseDisplay(e.description)}</div>`).join('')}</div>` : '';
     const expL = r => r.experience.length ? `<div class="space-y-3">${r.experience.map(e => `<div class="break-inside-avoid">${jobHead(e)}</div>`).join('')}</div>` : '';
     const eduL = r => r.education.length ? `<div class="space-y-2">${r.education.map(e => `<div class="text-xs break-inside-avoid"><div class="font-bold">${e.degree}</div><div class="text-slate-700">${e.school}</div><div class="text-[11px] text-slate-500">${[e.dates, e.details].filter(Boolean).join(' · ')}</div></div>`).join('')}</div>` : '';
     const prjL = r => r.projects.length ? `<div class="space-y-2">${r.projects.map(p => `<div class="text-xs break-inside-avoid"><div class="flex justify-between gap-2"><span class="font-bold">${p.title}</span><span class="font-mono text-[10px] text-slate-500 break-all">${p.link}</span></div><p class="text-slate-700">${p.description}</p></div>`).join('')}</div>` : '';
-    const chips = (r, c) => r.skills.length ? `<div class="flex flex-wrap gap-1.5">${r.skills.map(s => `<span class="px-2 py-0.5 text-xs font-bold text-white" style="background:${c}">${s}</span>`).join('')}</div>` : '';
+    const skillsDisplay = (r, c) => { if (!r.skills.length) return ''; const mode = r.config.skillStyle || 'boxes'; if (mode === 'plain') return `<p class="text-xs text-slate-700 leading-relaxed">${r.skills.join(' · ')}</p>`; if (mode === 'bullets') return `<ul class="list-disc pl-5 text-xs text-slate-700 space-y-0.5">${r.skills.map(s => `<li>${s}</li>`).join('')}</ul>`; return `<div class="flex flex-wrap gap-1.5">${r.skills.map(s => `<span class="border border-slate-500 px-2 py-1 text-xs font-bold">${s}</span>`).join('')}</div>`; };
+    const chips = (r, c) => skillsDisplay(r, c);
 
     function tplSimple(c) {
         const r = resumeState, p = r.personal;
@@ -1487,7 +1560,7 @@
     }
     function tplSidebar(c) {
         const r = resumeState, p = r.personal, wh = 'style="color:#fff!important;border-color:rgba(255,255,255,.5)!important"';
-        return `<div class="grid grid-cols-12 gap-5"><aside class="col-span-12 sm:col-span-4 p-4 text-white flex flex-col gap-4 text-xs" style="background:${c}">${pic(r, 'w-24 h-24 rounded-full border-4 border-white mx-auto')}<div class="text-center sm:text-left"><h1 class="text-2xl font-extrabold leading-tight">${p.fullName || 'Your Name'}</h1><p class="font-semibold opacity-90">${p.jobTitle}</p></div><div class="space-y-1 break-words">${contact(p).map(x => `<div>${x}</div>`).join('')}</div>${r.skills.length ? `<div><h2 ${wh} class="font-black uppercase tracking-widest mb-1 border-b pb-1">Skills</h2><ul class="space-y-0.5">${r.skills.map(s => `<li>${s}</li>`).join('')}</ul></div>` : ''}</aside><div class="col-span-12 sm:col-span-8">${sec('Profile', sum(r))}${sec('Experience', expL(r))}${sec('Education', eduL(r))}${sec('Projects', prjL(r))}</div></div>`;
+        return `<div class="grid grid-cols-12 gap-5"><aside class="col-span-12 sm:col-span-4 p-4 text-white flex flex-col gap-4 text-xs" style="background:${c}">${pic(r, 'w-24 h-24 rounded-full border-4 border-white mx-auto')}<div class="text-center sm:text-left"><h1 class="text-2xl font-extrabold leading-tight">${p.fullName || 'Your Name'}</h1><p class="font-semibold opacity-90">${p.jobTitle}</p></div><div class="space-y-1 break-words">${contact(p).map(x => `<div>${x}</div>`).join('')}</div>${r.skills.length ? `<div><h2 ${wh} class="font-black uppercase tracking-widest mb-1 border-b pb-1">Skills</h2>${skillsDisplay(r, '#fff')}</div>` : ''}</aside><div class="col-span-12 sm:col-span-8">${sec('Profile', sum(r))}${sec('Experience', expL(r))}${sec('Education', eduL(r))}${sec('Projects', prjL(r))}</div></div>`;
     }
     function tplTimeline(c) {
         const r = resumeState, p = r.personal;
@@ -1507,7 +1580,7 @@
     // ----- free UI injection -----
     function injectFreeUI() {
         const grid = $$('config-template').closest('.grid');
-        grid.insertAdjacentHTML('afterend', `<div class="mt-4 pt-3 border-t-2 border-slate-900 dark:border-slate-100"><div class="text-xs font-extrabold uppercase mb-2">Advanced styling & drafting</div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label class="block text-xs font-bold uppercase mb-1">Line spacing</label><select id="adv-spacing" onchange="updateCustomizer()" class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-100 font-bold text-xs p-2"><option value="">Normal</option><option value="1.35">Tight</option><option value="1.8">Relaxed</option></select></div><label class="flex items-center gap-2 text-xs font-bold uppercase pt-5"><input type="checkbox" id="adv-tint" onchange="updateCustomizer()" class="w-4 h-4"> Tint section headings</label><label class="flex items-center gap-2 text-xs font-bold uppercase sm:col-span-2"><input type="checkbox" id="adv-bullets" onchange="updateCustomizer()" class="w-4 h-4"> Use bullet points for experience descriptions</label><label class="flex items-center gap-2 text-xs font-bold uppercase sm:col-span-2"><input type="checkbox" id="adv-custom" onchange="updateCustomizer()" class="w-4 h-4"> Use my custom section order</label><div class="sm:col-span-2"><label class="block text-xs font-bold uppercase mb-1">Section order</label><select id="draft-order" onchange="updateCustomizer()" class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-100 font-bold text-xs p-2"><option value="profile,experience,education,skills,projects">Profile → Experience → Education → Skills → Projects</option><option value="experience,skills,education,profile,projects">Experience → Skills → Education → Profile → Projects</option><option value="profile,skills,experience,education,projects">Profile → Skills → Experience → Education → Projects</option><option value="education,experience,skills,profile,projects">Education → Experience → Skills → Profile → Projects</option></select></div></div><p class="text-[11px] text-slate-500 mt-2">Turn on custom section order to draft your CV or resume with the sections arranged your way. Plain Minimal removes divider lines; Bullet Focus and the bullet toggle use bullet points.</p></div>`);
+        grid.insertAdjacentHTML('afterend', `<div class="mt-4 pt-3 border-t-2 border-slate-900 dark:border-slate-100"><div class="text-xs font-extrabold uppercase mb-2">Advanced styling & drafting</div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label class="block text-xs font-bold uppercase mb-1">Line spacing</label><select id="adv-spacing" onchange="updateCustomizer()" class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-100 font-bold text-xs p-2"><option value="">Normal</option><option value="1.35">Tight</option><option value="1.8">Relaxed</option></select></div><label class="flex items-center gap-2 text-xs font-bold uppercase pt-5"><input type="checkbox" id="adv-tint" onchange="updateCustomizer()" class="w-4 h-4"> Tint section headings</label><label class="flex items-center gap-2 text-xs font-bold uppercase sm:col-span-2"><input type="checkbox" id="adv-bullets" onchange="updateCustomizer()" class="w-4 h-4"> Use bullet points for experience descriptions</label><div><label class="block text-xs font-bold uppercase mb-1">Skills display</label><select id="skill-display" onchange="updateCustomizer()" class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-100 font-bold text-xs p-2"><option value="plain">Plain text</option><option value="bullets">Bulleted list</option><option value="boxes">Rectangular boxes</option></select></div><div><label class="block text-xs font-bold uppercase mb-1">Expertise display</label><select id="expertise-display" onchange="updateCustomizer()" class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-100 font-bold text-xs p-2"><option value="plain">Plain text</option><option value="bullets">Bulleted list</option><option value="boxes">Rectangular boxes</option></select></div><label class="flex items-center gap-2 text-xs font-bold uppercase sm:col-span-2"><input type="checkbox" id="adv-custom" onchange="updateCustomizer()" class="w-4 h-4"> Use my custom section order</label><div class="sm:col-span-2"><label class="block text-xs font-bold uppercase mb-1">Section order</label><select id="draft-order" onchange="updateCustomizer()" class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-100 font-bold text-xs p-2"><option value="profile,experience,education,skills,projects">Profile → Experience → Education → Skills → Projects</option><option value="experience,skills,education,profile,projects">Experience → Skills → Education → Profile → Projects</option><option value="profile,skills,experience,education,projects">Profile → Skills → Experience → Education → Projects</option><option value="education,experience,skills,profile,projects">Education → Experience → Skills → Profile → Projects</option></select></div></div><p class="text-[11px] text-slate-500 mt-2">Choose plain text, bullets, or rectangular boxes for skills and expertise. The choice applies to both your resume and CV.</p></div>`);
         $$('acc-personal').insertAdjacentHTML('afterbegin', `<div class="md:col-span-2 flex items-center gap-3"><div id="photo-thumb" class="w-16 h-16 border-2 border-slate-900 dark:border-slate-100 bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-hidden shrink-0"></div><div class="flex flex-wrap gap-2 items-center"><button onclick="pickPhoto()" class="px-3 py-2 text-xs font-bold bg-amber-300 text-slate-900 border-2 border-slate-900 shadow-neo-sm"><i class="fa-solid fa-camera mr-1"></i>Upload photo</button><button onclick="removePhoto()" class="px-3 py-2 text-xs font-bold border-2 border-slate-900 dark:border-slate-100">Remove</button><p class="w-full text-[11px] text-slate-500">Free local image upload.</p></div><input type="file" id="photo-file" accept="image/*" class="hidden" onchange="onPhoto(this.files[0]);this.value=''" /></div>`);
         document.body.insertAdjacentHTML('beforeend', `<div id="mbar" class="lg:hidden no-print fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex bg-white dark:bg-slate-800 border-4 border-slate-900 dark:border-slate-100 shadow-neo"><button id="mb-edit" onclick="switchMobileTab('editor')" class="px-5 py-3 font-black text-xs uppercase"><i class="fa-solid fa-pen-to-square mr-1"></i>Edit</button><button id="mb-prev" onclick="switchMobileTab('preview')" class="px-5 py-3 font-black text-xs uppercase"><i class="fa-solid fa-eye mr-1"></i>Live preview</button></div>`);
         setMbar('editor'); refreshLocks();
@@ -1565,7 +1638,7 @@
         const detailHTML = details.length ? `<div class="grid grid-cols-1 sm:grid-cols-3 gap-1 text-xs">${details.map(x => `<div><strong>${x[0]}:</strong> ${x[1]}</div>`).join('')}</div>` : '';
         const refs = r.referees.length ? r.referees.map(x => `<div class="text-xs"><strong>${x.name || 'Referee'}</strong><br>${[x.position,x.org,x.phone,x.email].filter(Boolean).join(' · ')}</div>`).join('') : '<p class="text-xs italic">References available on request.</p>';
         const declaration = cv.declaration ? `<p class="text-xs mt-3">I, ${p.fullName || 'the undersigned'}, declare that the information given above is true and correct.</p><div class="flex justify-between mt-8 text-xs"><span class="border-t border-slate-500 pt-1 w-40">Signature</span><span class="border-t border-slate-500 pt-1 w-32">Date</span></div>` : '';
-        return {r,p,cv,details,detailHTML,refs,declaration,langs:list(lines(r.extras.languages)),certs:list(lines(r.extras.certifications)),interests:list(lines(r.extras.interests)),skills:list(r.skills)};
+        return {r,p,cv,details,detailHTML,refs,declaration,langs:list(lines(r.extras.languages)),certs:list(lines(r.extras.certifications)),interests:list(lines(r.extras.interests)),skills:skillsDisplay(r, c)};
     }
     function renderCVTemplate(c, style) {
         const P = cvParts(c), {r,p} = P;
