@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Free Resume Builder - Modern CV/Resume Builder</title>
+    <title>CraftResume - Free Resume & CV Builder</title>
     <!-- Favicon: drop your image in this folder named "logo.png" (also tries logo.svg / .jpg / .jpeg / .webp / .ico) -->
     <link rel="icon" id="site-favicon" href="logo.png">
     <script>
@@ -33,7 +33,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;500;600;700&family=Lora:wght@400;500;700&family=Montserrat:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <script>
         tailwind.config = {
@@ -124,6 +124,7 @@
             #resume-render-target .space-y-4>div,#resume-render-target .space-y-3>div,#resume-render-target .space-y-2>div,.break-inside-avoid{break-inside:avoid}
         }
     .font-serif-playfair{font-family:'Playfair Display',serif}.font-pop{font-family:'Poppins',sans-serif}
+        .font-lora{font-family:'Lora',serif}.font-mont{font-family:'Montserrat',sans-serif}.font-source{font-family:'Source Sans 3',sans-serif}.font-raleway{font-family:'Raleway',sans-serif}.font-space{font-family:'Space Grotesk',sans-serif}
         .tint h2{color:var(--ac)!important;border-color:var(--ac)!important}
         @media (max-width:1023px){body{padding-bottom:4.5rem}#toast-container{bottom:4.5rem!important}}
         @media print{.bleed{margin:0 0 1.5rem!important}#mbar{display:none!important}}
@@ -174,9 +175,19 @@
                     <i class="fa-solid fa-trash-can md:mr-1"></i><span class="hidden md:inline">Reset</span>
                 </button>
 
-                <!-- Export PDF / Print -->
-                <button onclick="printResume()" class="px-4 py-2 text-xs font-black bg-blue-600 hover:bg-blue-700 text-white border-2 border-slate-900 shadow-neo hover:translate-x-[1px] hover:translate-y-[1px] transition-all">
-                    <i class="fa-solid fa-print md:mr-1"></i><span class="hidden md:inline">PDF / Print</span>
+                <!-- Print -->
+                <button onclick="printResume()" aria-label="Print" title="Print" class="px-3 py-2 text-xs font-bold bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-2 border-slate-900 dark:border-slate-100 shadow-neo-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all">
+                    <i class="fa-solid fa-print md:mr-1"></i><span class="hidden md:inline">Print</span>
+                </button>
+
+                <!-- Download Word -->
+                <button data-export onclick="downloadWord()" aria-label="Download Word file" title="Download as Word (.docx)" class="px-3 py-2 text-xs font-black bg-sky-500 hover:bg-sky-600 text-white border-2 border-slate-900 shadow-neo-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all disabled:opacity-60">
+                    <i class="fa-solid fa-file-word md:mr-1"></i><span class="hidden md:inline">Word</span>
+                </button>
+
+                <!-- Download PDF -->
+                <button data-export onclick="downloadPDF()" aria-label="Download PDF" title="Download as PDF" class="px-4 py-2 text-xs font-black bg-blue-600 hover:bg-blue-700 text-white border-2 border-slate-900 shadow-neo hover:translate-x-[1px] hover:translate-y-[1px] transition-all disabled:opacity-60">
+                    <i class="fa-solid fa-file-pdf md:mr-1"></i><span class="hidden md:inline">PDF</span>
                 </button>
             </div>
         </div>
@@ -305,7 +316,7 @@
                 <!-- SECTION: Projects & Key Achievements -->
                 <div class="bg-white dark:bg-slate-800 border-4 border-slate-900 dark:border-slate-100 shadow-neo dark:shadow-neo-dark overflow-hidden">
                     <button onclick="toggleAccordion('acc-projects')" class="w-full p-4 bg-slate-100 dark:bg-slate-700 text-left font-black text-sm uppercase flex justify-between items-center border-b-2 border-slate-900 dark:border-slate-100">
-                        <span><i class="fa-solid fa-code text-blue-600 dark:text-blue-400 mr-2"></i> 4. Key Projects</span>
+                        <span><i class="fa-solid fa-code text-blue-600 dark:text-blue-400 mr-2"></i> 4. Portfolio / Projects</span>
                         <i id="acc-projects-icon" class="fa-solid fa-chevron-down transition-transform"></i>
                     </button>
                     <div id="acc-projects" class="p-4 flex flex-col gap-4 hidden">
@@ -1097,7 +1108,9 @@
 
     function ensureShape() {
         const r = resumeState;
-        r.config = Object.assign({template:'modern', font:'font-sans-inter', accentColor:'#2563eb', scale:1, spacing:'', tint:false}, r.config);
+        r.config = Object.assign({showProjects:true, customOn:false, docType:'resume', template:'modern', font:'font-sans-inter', accentColor:'#2563eb', scale:1, spacing:'', tint:false}, r.config);
+        if (!TPL_TYPE[r.config.template]) r.config.template = 'modern';
+        r.config.docType = TPL_TYPE[r.config.template];
         r.personal = Object.assign({fullName:'',jobTitle:'',email:'',phone:'',location:'',website:'',summary:''}, r.personal);
         for (const k in FIELDS) r[k] = (Array.isArray(r[k]) ? r[k] : []).map(it => {
             const o = {id: (it && it.id) ? String(it.id) : uid(k)};
@@ -1125,14 +1138,16 @@
 
     // Safe render: escapes all user text before it reaches innerHTML
     function renderResume() {
-        syncPersonalState(); syncExtras(); ensureShape(); if (!isPro()) sanitizeConfig(resumeState.config);
+        syncPersonalState(); syncExtras(); ensureShape();
         const real = resumeState;
         resumeState = escClone(real);
+        if (real.config.showProjects === false) resumeState.projects = [];
+        if (!real.config.customOn) resumeState.custom = [];
         try {
             const paper = document.getElementById('resume-paper'), target = document.getElementById('resume-render-target');
             paper.className = `resume-paper bg-white text-slate-900 border-4 border-slate-900 shadow-neo-lg p-8 md:p-10 transition-all min-h-[842px] ${real.config.font}`;
             const c = real.config.accentColor, t = real.config.template;
-            target.innerHTML = renderByTpl(t, c) + extrasHTML(resumeState);
+            target.innerHTML = renderByTpl(t, c) + (INLINE_EXTRAS.has(t) ? '' : extrasHTML(resumeState)) + customHTML(resumeState, c, t);
             target.style.zoom = real.config.scale || 1; applyAdv(real, target);
         } finally { resumeState = real; }
         document.querySelectorAll('[onclick^="setAccentColor"]').forEach(b => {
@@ -1209,6 +1224,7 @@
     function loadSample() {
         origSample();
         resumeState.extras = { languages: 'English (Native)\nFrench (Intermediate)', certifications: 'AWS Certified Developer - Associate\nScrum Master (PSM I)' };
+        resumeState.custom = [{title:'Volunteering', body:'Mentor, Code for Good Bootcamp (2021 - Present)\nOrganizer, Bay Area Open Source Meetup (2019 - 2022)'}, {title:'Awards', body:'Engineering Excellence Award, CloudScale Technologies (2023)\nHackathon Winner, TechCrunch Disrupt (2020)'}];
         fillAll();
     }
     function hasData() { const r = resumeState; return Object.values(r.personal).some(v => v) || r.experience.length || r.education.length || r.projects.length || r.skills.length; }
@@ -1218,7 +1234,7 @@
         if (!confirm('Clear all resume fields?')) return;
         resumeState.personal = {fullName:'',jobTitle:'',email:'',phone:'',location:'',website:'',summary:''};
         resumeState.experience = []; resumeState.education = []; resumeState.projects = []; resumeState.skills = [];
-        resumeState.extras = {languages:'', certifications:''};
+        resumeState.extras = {languages:'', certifications:''}; resumeState.photo = ''; resumeState.custom = [];
         document.getElementById('skill-input').value = '';
         fillAll(); showToast('Form reset complete.');
     }
@@ -1239,38 +1255,16 @@
         window.print(); setTimeout(() => document.title = old, 500);
     }
 
-    function exportJSON() {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([JSON.stringify(resumeState, null, 2)], {type:'application/json'}));
-        a.download = ((resumeState.personal.fullName || 'resume').trim().replace(/\s+/g, '-').toLowerCase()) + '-backup.json';
-        document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-        showToast('Backup downloaded');
-    }
-    function importJSON(file) {
-        if (!file) return;
-        const rd = new FileReader();
-        rd.onload = () => {
-            try {
-                const d = JSON.parse(rd.result);
-                if (!d || typeof d !== 'object' || !d.personal) throw new Error('bad');
-                d.experience = (d.experience || []).map(x => Object.assign({}, x, {id: null}));
-                d.education = (d.education || []).map(x => Object.assign({}, x, {id: null}));
-                d.projects = (d.projects || []).map(x => Object.assign({}, x, {id: null}));
-                resumeState = d; fillAll(); showToast('Resume imported');
-            } catch (e) { showToast('That file is not a valid resume backup.'); }
-        };
-        rd.readAsText(file);
-    }
-
     function copyText() {
         const r = resumeState, p = r.personal, L = [p.fullName, p.jobTitle, [p.email, p.phone, p.location, p.website].filter(Boolean).join(' | '), ''];
         if (p.summary) L.push('SUMMARY', p.summary, '');
         if (r.experience.length) { L.push('EXPERIENCE'); r.experience.forEach(e => L.push([e.jobTitle, e.company].filter(Boolean).join(' - ') + (e.dates ? ' (' + e.dates + ')' : ''), e.description, '')); }
         if (r.education.length) { L.push('EDUCATION'); r.education.forEach(e => L.push([e.degree, e.school, e.dates].filter(Boolean).join(', '))); L.push(''); }
-        if (r.projects.length) { L.push('PROJECTS'); r.projects.forEach(e => L.push(e.title + (e.link ? ' - ' + e.link : ''), e.description, '')); }
+        if (r.config.showProjects !== false && r.projects.length) { L.push('PROJECTS'); r.projects.forEach(e => L.push(e.title + (e.link ? ' - ' + e.link : ''), e.description, '')); }
         if (r.skills.length) L.push('SKILLS', r.skills.join(', '), '');
         if (r.extras.languages.trim()) L.push('LANGUAGES', r.extras.languages, '');
         if (r.extras.certifications.trim()) L.push('CERTIFICATIONS', r.extras.certifications);
+        if (r.config.customOn) (r.custom || []).forEach(x => { if ((x.title || '').trim() || (x.body || '').trim()) L.push('', (x.title || 'ADDITIONAL').toUpperCase(), x.body); });
         const text = L.join('\n');
         const fb = () => { const t = document.createElement('textarea'); t.value = text; document.body.append(t); t.select(); try { document.execCommand('copy'); showToast('Plain text copied'); } catch (e) { showToast('Copy failed'); } t.remove(); };
         if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => showToast('Plain text copied'), fb); else fb();
@@ -1294,16 +1288,13 @@
     function injectUI() {
         const cls = 'px-3 py-2 text-xs font-bold bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border-2 border-slate-900 dark:border-slate-100 shadow-neo-sm hover:translate-x-[1px] hover:translate-y-[1px] transition-all';
         document.querySelector('header button[onclick="printResume()"]').insertAdjacentHTML('beforebegin',
-            `<button onclick="copyText()" class="${cls}" title="Copy as plain text for application forms"><i class="fa-solid fa-copy md:mr-1"></i><span class="hidden md:inline">Copy text</span></button>
-             <button onclick="exportJSON()" class="${cls}" title="Download a backup file"><i class="fa-solid fa-download md:mr-1"></i><span class="hidden md:inline">Backup</span></button>
-             <button onclick="document.getElementById('import-file').click()" class="${cls}" title="Restore from a backup file"><i class="fa-solid fa-upload md:mr-1"></i><span class="hidden md:inline">Import</span></button>
-             <input type="file" id="import-file" accept="application/json,.json" class="hidden" onchange="importJSON(this.files[0]); this.value=''">`);
+            `<button onclick="copyText()" class="${cls}" title="Copy as plain text for application forms"><i class="fa-solid fa-copy md:mr-1"></i><span class="hidden md:inline">Copy text</span></button>`);
         document.getElementById('config-template').closest('.grid').insertAdjacentHTML('beforeend',
             `<div><label class="block text-xs font-extrabold uppercase mb-1">Text Size</label>
              <select id="config-scale" onchange="updateCustomizer()" class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-100 font-bold text-xs p-2">
              <option value="0.9">Small</option><option value="1">Medium</option><option value="1.1">Large</option></select></div>`);
         document.querySelector('[onclick^="setAccentColor"]').parentElement.insertAdjacentHTML('beforeend',
-            `<input type="color" id="accent-custom" aria-label="Custom accent color" title="Custom color (Pro)" class="w-6 h-6 p-0 border-2 border-slate-900 bg-transparent cursor-pointer" onclick="if(!gate('Custom colors')){event.preventDefault()}" oninput="advColor(this.value)">`);
+            `<input type="color" id="accent-custom" aria-label="Custom accent color" title="Custom color" class="w-6 h-6 p-0 border-2 border-slate-900 bg-transparent cursor-pointer" oninput="advColor(this.value)">`);
         const ta = 'w-full border-2 border-slate-900 dark:border-slate-100 bg-slate-50 dark:bg-slate-900 p-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500';
         document.getElementById('acc-skills').parentElement.insertAdjacentHTML('afterend',
             `<div class="bg-white dark:bg-slate-800 border-4 border-slate-900 dark:border-slate-100 shadow-neo dark:shadow-neo-dark overflow-hidden">
@@ -1334,144 +1325,60 @@
     </script>
 
     <script>
-    // ===== PLANS, ACCOUNTS, PRO FEATURES (demo layer: replace with a real backend) =====
-    const PLAN = { price: 'GH₵ 49', period: 'month' };            // placeholder price
-    const PRO_TPL = ['banner','sidebar','timeline'];
-    const FREE_FONTS = ['font-sans-inter','font-serif-merriweather','font-mono-fira'];
-    const FREE_COLORS = ['#2563eb','#7c3aed','#059669','#e11d48','#0f172a'];
-    const PROB = '<span class="ml-1 px-1 text-[9px] font-black bg-amber-400 border border-slate-900 text-slate-900">PRO</span>';
-    const INP = 'w-full border-2 border-slate-900 dark:border-slate-100 bg-slate-50 dark:bg-slate-900 p-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500';
-    const BTN = 'w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm uppercase border-2 border-slate-900 shadow-neo-sm disabled:opacity-60';
+    // ===== FREE LAYER: every layout, theme and feature is free. No accounts, no payments. =====
     const $$ = id => document.getElementById(id);
-    const DB = { get() { try { return JSON.parse(localStorage.getItem('cr-users')) || {}; } catch (e) { return {}; } }, set(u) { try { localStorage.setItem('cr-users', JSON.stringify(u)); } catch (e) {} } };
-    let session = null; try { session = localStorage.getItem('cr-session'); } catch (e) {}
-    const user = () => session ? DB.get()[session] : null;
-    const isPro = () => { const u = user(); return !!(u && u.plan === 'pro'); };
-    async function sha(t) {
-        if (!(window.crypto && crypto.subtle)) return btoa(unescape(encodeURIComponent(t)));
-        const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
-        return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
-    }
-    function setPlan(p) { const u = DB.get(); if (session && u[session]) { u[session].plan = p; DB.set(u); } }
-    function sanitizeConfig(c) {
-        if (PRO_TPL.includes(c.template)) c.template = 'modern';
-        if (!FREE_FONTS.includes(c.font)) c.font = 'font-sans-inter';
-        if (!FREE_COLORS.includes(c.accentColor)) c.accentColor = '#2563eb';
-        c.spacing = ''; c.tint = false;
-    }
+    try { ['cr-users', 'cr-session', 'cr-ai-usage'].forEach(k => localStorage.removeItem(k)); } catch (e) {}
 
-    // ----- modal helper -----
-    function closeModal() { const m = $$('modal'); if (m) m.remove(); }
-    function modal(html) {
-        closeModal();
-        const m = document.createElement('div'); m.id = 'modal';
-        m.className = 'no-print fixed inset-0 z-[60] bg-slate-900/70 flex items-end sm:items-center justify-center sm:p-4';
-        m.innerHTML = `<div role="dialog" aria-modal="true" class="relative bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border-4 border-slate-900 dark:border-slate-100 shadow-neo-lg w-full sm:max-w-md max-h-[92vh] overflow-y-auto p-5"><button onclick="closeModal()" aria-label="Close" class="absolute top-3 right-3 p-1"><i class="fa-solid fa-xmark text-lg"></i></button>${html}</div>`;
-        m.addEventListener('mousedown', e => { if (e.target === m) closeModal(); });
-        document.body.append(m);
-        const i = m.querySelector('input'); if (i) i.focus();
-    }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    const FONTS = [['font-sans-inter', 'Sans (Inter)'], ['font-serif-merriweather', 'Serif (Merriweather)'], ['font-mono-fira', 'Mono (Fira Code)'],
+        ['font-serif-playfair', 'Playfair Display'], ['font-pop', 'Poppins'], ['font-lora', 'Lora'], ['font-mont', 'Montserrat'],
+        ['font-source', 'Source Sans'], ['font-raleway', 'Raleway'], ['font-space', 'Space Grotesk']];
+    const COLORS = [['#d97706', 'Amber'], ['#0d9488', 'Teal'], ['#db2777', 'Pink'], ['#ea580c', 'Orange'], ['#4338ca', 'Indigo']];
 
-    // ----- auth -----
-    let authMode = 'signup', afterAuth = null;
-    function openAuth(mode, then) {
-        authMode = mode; afterAuth = then || null;
-        const su = mode === 'signup';
-        modal(`<h2 class="text-lg font-black uppercase mb-1">${su ? 'Create your account' : 'Welcome back'}</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">${su ? 'An account is needed to unlock Pro templates, styling and photo upload.' : 'Log in to access your Pro features.'}</p>
-        <form onsubmit="submitAuth(event)" class="flex flex-col gap-3">
-          <input id="au-email" type="email" required autocomplete="email" placeholder="Email" class="${INP}">
-          <input id="au-pass" type="password" required minlength="6" autocomplete="${su ? 'new-password' : 'current-password'}" placeholder="Password (6+ characters)" class="${INP}">
-          <p id="au-err" role="alert" class="text-xs font-bold text-rose-600 min-h-[1rem]"></p>
-          <button class="${BTN}">${su ? 'Sign up' : 'Log in'}</button></form>
-        <p class="text-xs mt-3">${su ? 'Already have an account?' : 'New here?'} <button class="font-bold underline" onclick="openAuth('${su ? 'login' : 'signup'}', afterAuth)">${su ? 'Log in' : 'Sign up'}</button></p>
-        <p class="text-[10px] text-slate-500 mt-3">Demo mode: accounts live only in this browser until a server is connected.</p>`);
-    }
-    async function submitAuth(e) {
-        e.preventDefault();
-        const email = $$('au-email').value.trim().toLowerCase(), pass = $$('au-pass').value, err = $$('au-err');
-        if (pass.length < 6) { err.textContent = 'Password must be at least 6 characters.'; return; }
-        const users = DB.get(), h = await sha(email + ':' + pass);
-        if (authMode === 'signup') {
-            if (users[email]) { err.textContent = 'That email already has an account. Try logging in.'; return; }
-            users[email] = { hash: h, plan: 'free', created: Date.now() }; DB.set(users);
-        } else if (!users[email] || users[email].hash !== h) { err.textContent = 'Wrong email or password.'; return; }
-        session = email; try { localStorage.setItem('cr-session', email); } catch (x) {}
-        const next = afterAuth; closeModal(); refreshLocks(); renderResume(); showToast('Signed in as ' + email);
-        if (next) next();
-    }
-    function logout() { session = null; try { localStorage.removeItem('cr-session'); } catch (e) {} closeModal(); refreshLocks(); renderResume(); showToast('Logged out'); }
+    // [id, label, shows profile photo]
+    const LAYOUTS = {
+        resume: [
+            ['modern', 'Modern Minimalist'], ['executive', 'Executive Classic'], ['compact', 'Tech Compact'], ['simple', 'Simple Clean'],
+            ['minimal', 'ATS Minimal'], ['twotone', 'Name & Contact Split'], ['elegant', 'Elegant Centered', 1],
+            ['banner', 'Color Banner', 1], ['bold', 'Bold Dark Header', 1], ['cards', 'Neo Cards', 1], ['stripe', 'Accent Stripe', 1],
+            ['sidebar', 'Sidebar Profile', 1], ['lightbar', 'Light Sidebar', 1], ['split', 'Right Sidebar', 1], ['timeline', 'Timeline', 1]
+        ],
+        cv: [
+            ['cv-classic', 'Classic Academic', 1], ['cv-twocol', 'Dates Column', 1], ['cv-modern', 'Modern CV', 1], ['cv-formal', 'Formal / European', 1],
+            ['cv-banner', 'Color Banner CV', 1], ['cv-sidebar', 'Sidebar CV', 1], ['cv-executive', 'Executive CV', 1], ['cv-minimal', 'Minimal CV']
+        ]
+    };
+    const TPL_TYPE = {}; Object.keys(LAYOUTS).forEach(t => LAYOUTS[t].forEach(l => TPL_TYPE[l[0]] = t));
+    const CV_TPLS = new Set(LAYOUTS.cv.map(l => l[0]));
+    const DEFAULT_TPL = { resume: 'modern', cv: 'cv-classic' };
 
-    // ----- upgrade / checkout (DEMO) -----
-    function openUpgrade() {
-        if (!user()) return openAuth('signup', openUpgrade);
-        if (isPro()) return showToast('You are already on Pro');
-        modal(`<h2 class="text-lg font-black uppercase mb-1">Go Pro ${PROB}</h2>
-        <p class="text-2xl font-black my-2">${PLAN.price}<span class="text-sm font-bold text-slate-500"> / ${PLAN.period}</span></p>
-        <ul class="text-sm space-y-2 mb-4">
-          <li><i class="fa-solid fa-check text-emerald-600 mr-2"></i>3 premium templates (Banner, Sidebar, Timeline)</li>
-          <li><i class="fa-solid fa-check text-emerald-600 mr-2"></i>Profile photo upload</li>
-          <li><i class="fa-solid fa-check text-emerald-600 mr-2"></i>Advanced styling: custom colors, premium fonts, line spacing, tinted headings</li></ul>
-        <button id="pay-btn" onclick="payNow()" class="${BTN}">Upgrade now</button>
-        <p class="text-[10px] text-slate-500 mt-3">Demo checkout: no real payment is taken. A real version needs a payment provider (e.g. Paystack) and a server to verify payments.</p>`);
+    // ----- controls -----
+    let _optType = null;
+    function buildLayoutOptions(type) {
+        if (_optType === type) return; _optType = type;
+        $$('config-template').innerHTML = LAYOUTS[type].map(l => `<option value="${l[0]}">${l[1]}${l[2] ? ' 📷' : ''}</option>`).join('');
     }
-    function payNow() {
-        // REAL VERSION: open the payment provider's popup here, then have your SERVER verify the payment
-        // (webhook) and mark the user as Pro. Never trust the browser to grant the plan.
-        const b = $$('pay-btn'); b.disabled = true; b.textContent = 'Processing...';
-        setTimeout(() => { setPlan('pro'); closeModal(); refreshLocks(); renderResume(); showToast('Welcome to Pro!'); }, 900);
-    }
-    function openAccount() {
-        const u = user(), pro = isPro();
-        modal(`<h2 class="text-lg font-black uppercase mb-3">Your account</h2>
-        <p class="text-sm break-all"><strong>${esc(session)}</strong></p>
-        <p class="text-sm mb-4">Plan: <strong>${pro ? 'Pro' : 'Free'}</strong></p>
-        <div class="flex flex-col gap-2">${pro ? `<button class="${BTN} !bg-slate-200 !text-slate-900" onclick="setPlan('free');closeModal();refreshLocks();renderResume();showToast('Switched to Free (demo)')">Switch to Free (demo)</button>` : `<button class="${BTN}" onclick="openUpgrade()">Upgrade to Pro</button>`}
-        <button class="${BTN} !bg-rose-400 !text-slate-900" onclick="logout()">Log out</button></div>`);
-    }
-    function gate(feature) {
-        if (isPro()) return true;
-        showToast(feature + ' is a Pro feature'); openUpgrade(); return false;
-    }
-
-    function updateAccountUI() {
-        const a = $$('acct-btn'), g = $$('upgrade-btn'); if (!a) return;
-        a.innerHTML = user() ? `<i class="fa-solid fa-circle-user"></i><span class="hidden md:inline ml-1 max-w-[120px] truncate inline-block align-bottom">${esc(session)}</span>${isPro() ? PROB : ''}` : `<i class="fa-solid fa-right-to-bracket"></i><span class="hidden md:inline ml-1">Sign in</span>`;
-        a.onclick = () => user() ? openAccount() : openAuth('login');
-        g.style.display = isPro() ? 'none' : '';
-    }
-
-    function refreshLocks() {
-        const L = isPro() ? '' : ' 🔒', ts = $$('config-template'), fs = $$('config-font'), tv = ts.value, fv = fs.value;
-        ts.innerHTML = `<optgroup label="Free"><option value="modern">Modern Minimalist</option><option value="executive">Executive Classic</option><option value="compact">Tech Compact</option><option value="simple">Simple Clean</option></optgroup><optgroup label="Pro"><option value="banner">Color Banner${L}</option><option value="sidebar">Sidebar Profile${L}</option><option value="timeline">Timeline${L}</option></optgroup>`;
-        fs.innerHTML = `<option value="font-sans-inter">Sans (Inter)</option><option value="font-serif-merriweather">Serif (Merriweather)</option><option value="font-mono-fira">Mono (Fira Code)</option><option value="font-serif-playfair">Playfair Display${L}</option><option value="font-pop">Poppins${L}</option>`;
-        ts.value = tv; fs.value = fv; updateAccountUI();
-        const lock = $$('photo-lock'); if (lock) lock.style.display = isPro() ? 'none' : '';
-    }
+    function buildFontOptions() { $$('config-font').innerHTML = FONTS.map(f => `<option value="${f[0]}">${f[1]}</option>`).join(''); }
 
     function updateCustomizer() {
-        const c = resumeState.config, t = $$('config-template').value, f = $$('config-font').value;
-        const sp = $$('adv-spacing').value, tint = $$('adv-tint').checked;
-        const revert = () => { $$('config-template').value = c.template; $$('config-font').value = c.font; $$('adv-spacing').value = c.spacing || ''; $$('adv-tint').checked = !!c.tint; };
-        if (PRO_TPL.includes(t) && !gate('Premium templates')) return revert();
-        if (!FREE_FONTS.includes(f) && !gate('Premium fonts')) return revert();
-        if ((sp || tint) && !gate('Advanced styling')) return revert();
-        c.template = t; c.font = f; c.spacing = sp; c.tint = tint;
+        const c = resumeState.config, dt = $$('config-doctype').value;
+        if (dt !== c.docType) { c.docType = dt; c.template = DEFAULT_TPL[dt]; showToast(dt === 'cv' ? 'CV layouts loaded' : 'Resume layouts loaded'); }
+        else c.template = $$('config-template').value;
+        c.font = $$('config-font').value; c.spacing = $$('adv-spacing').value; c.tint = $$('adv-tint').checked;
         c.scale = parseFloat($$('config-scale').value) || 1;
         renderResume();
     }
-    function advColor(v) { if (!isPro()) return; resumeState.config.accentColor = v; renderResume(); }
+    function advColor(v) { resumeState.config.accentColor = v; renderResume(); }
     function applyAdv(real, target) {
         const c = real.config;
         target.style.lineHeight = c.spacing || ''; target.style.setProperty('--ac', c.accentColor); target.classList.toggle('tint', !!c.tint);
-        $$('config-template').value = c.template; $$('config-font').value = c.font;
+        buildLayoutOptions(c.docType);
+        $$('config-doctype').value = c.docType; $$('config-template').value = c.template; $$('config-font').value = c.font;
         $$('adv-spacing').value = c.spacing || ''; $$('adv-tint').checked = !!c.tint;
-        const th = $$('photo-thumb'); if (th) th.innerHTML = (real.photo && isPro()) ? `<img src="${real.photo}" alt="Profile photo" class="w-full h-full object-cover">` : '<i class="fa-solid fa-user text-slate-400"></i>';
+        const th = $$('photo-thumb'); if (th) th.innerHTML = real.photo ? `<img src="${real.photo}" alt="Profile photo" class="w-full h-full object-cover">` : '<i class="fa-solid fa-user text-slate-400"></i>';
     }
 
-    // ----- photo -----
-    function pickPhoto() { if (gate('Photo upload')) $$('photo-file').click(); }
+    // ----- photo (free) -----
+    function pickPhoto() { $$('photo-file').click(); }
     function removePhoto() { resumeState.photo = ''; renderResume(); }
     function onPhoto(file) {
         if (!file || !file.type.startsWith('image/')) return showToast('Please choose an image file');
@@ -1489,185 +1396,423 @@
         rd.readAsDataURL(file);
     }
 
-    // ----- templates -----
+    // ----- shared template helpers (resumeState is the escaped copy while rendering) -----
+    const nm = p => p.fullName || 'Your Name';
     const contact = p => [p.email, p.phone, p.location, p.website].filter(Boolean);
-    const sec = (t, b) => b ? `<section class="mb-5"><h2 class="text-xs font-black uppercase tracking-widest pb-1 mb-2 border-b-2 border-slate-900">${t}</h2>${b}</section>` : '';
+    const L = s => String(s || '').split('\n').map(x => x.trim()).filter(Boolean);
+    const ulist = a => a.length ? `<ul class="text-xs space-y-0.5">${a.map(x => `<li>${x}</li>`).join('')}</ul>` : '';
+    const H = {
+        rule: (t, c) => `<h2 class="text-xs font-black uppercase tracking-widest pb-1 mb-2 border-b-2 border-slate-900">${t}</h2>`,
+        bar: (t, c) => `<h2 class="text-xs font-black uppercase tracking-widest pl-2 mb-2 border-l-4" style="border-color:${c}">${t}</h2>`,
+        center: (t, c) => `<h2 class="text-[11px] font-bold uppercase tracking-[0.25em] text-center pb-1 mb-3 border-b border-slate-400">${t}</h2>`,
+        pill: (t, c) => `<h2 class="inline-block text-[11px] font-black uppercase tracking-widest px-2 py-0.5 mb-2" style="background:${c};color:#fff!important">${t}</h2>`,
+        plain: (t, c) => `<h2 class="text-[11px] font-black uppercase tracking-widest text-slate-500 pb-1 mb-2 border-b border-slate-300">${t}</h2>`,
+        under: (t, c) => `<h2 class="text-sm font-extrabold pb-1 mb-2 border-b-2" style="color:${c};border-color:${c}">${t}</h2>`,
+        card: (t, c) => `<h2 class="text-xs font-black uppercase tracking-widest pb-1 mb-2 border-b-2 border-slate-900">${t}</h2>`
+    };
+    const mk = (style, c) => (t, b) => !b ? '' : style === 'card'
+        ? `<section class="mb-4 border-2 border-slate-900 p-3" style="box-shadow:3px 3px 0 0 ${c}">${H.card(t, c)}${b}</section>`
+        : `<section class="mb-5">${H[style](t, c)}${b}</section>`;
+    const sec = mk('rule', '#0f172a');
     const sum = r => r.personal.summary ? `<p class="text-xs leading-relaxed text-slate-800">${r.personal.summary}</p>` : '';
-    const pic = (r, cls) => isPro() && r.photo ? `<img src="${r.photo}" alt="" class="${cls} object-cover shrink-0">` : '';
+    const pic = (r, cls, st = '') => r.photo ? `<img src="${r.photo}" alt="" class="${cls} object-cover shrink-0" style="${st}">` : '';
     const jobHead = e => `<div class="flex justify-between items-baseline gap-2"><h3 class="font-bold text-sm">${e.jobTitle || 'Job Title'}</h3><span class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">${e.dates}</span></div><div class="text-xs font-semibold text-slate-600">${[e.company, e.location].filter(Boolean).join(' | ')}</div><p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line mt-1">${e.description}</p>`;
     const expL = r => r.experience.length ? `<div class="space-y-3">${r.experience.map(e => `<div class="break-inside-avoid">${jobHead(e)}</div>`).join('')}</div>` : '';
     const eduL = r => r.education.length ? `<div class="space-y-2">${r.education.map(e => `<div class="text-xs break-inside-avoid"><div class="font-bold">${e.degree}</div><div class="text-slate-700">${e.school}</div><div class="text-[11px] text-slate-500">${[e.dates, e.details].filter(Boolean).join(' · ')}</div></div>`).join('')}</div>` : '';
     const prjL = r => r.projects.length ? `<div class="space-y-2">${r.projects.map(p => `<div class="text-xs break-inside-avoid"><div class="flex justify-between gap-2"><span class="font-bold">${p.title}</span><span class="font-mono text-[10px] text-slate-500 break-all">${p.link}</span></div><p class="text-slate-700">${p.description}</p></div>`).join('')}</div>` : '';
     const chips = (r, c) => r.skills.length ? `<div class="flex flex-wrap gap-1.5">${r.skills.map(s => `<span class="px-2 py-0.5 text-xs font-bold text-white" style="background:${c}">${s}</span>`).join('')}</div>` : '';
+    const skI = r => r.skills.length ? `<p class="text-xs text-slate-700 leading-relaxed">${r.skills.join(' · ')}</p>` : '';
+    const sideBox = (t, b, c) => b ? `<div><h2 class="font-black uppercase tracking-widest mb-1 pb-1 border-b-2" style="border-color:${c}">${t}</h2>${b}</div>` : '';
+    const contactDivs = p => contact(p).map(x => `<div class="break-words">${x}</div>`).join('');
 
+    // CV-style rows: dates in a left column
+    const rowsExp = r => r.experience.length ? `<div class="space-y-3">${r.experience.map(e => `<div class="grid grid-cols-12 gap-3 break-inside-avoid"><div class="col-span-12 sm:col-span-3 text-[11px] font-semibold text-slate-500">${e.dates}</div><div class="col-span-12 sm:col-span-9"><h3 class="font-bold text-sm">${e.jobTitle || 'Job Title'}</h3><div class="text-xs font-semibold text-slate-600">${[e.company, e.location].filter(Boolean).join(' | ')}</div><p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line mt-1">${e.description}</p></div></div>`).join('')}</div>` : '';
+    const rowsEdu = r => r.education.length ? `<div class="space-y-3">${r.education.map(e => `<div class="grid grid-cols-12 gap-3 break-inside-avoid"><div class="col-span-12 sm:col-span-3 text-[11px] font-semibold text-slate-500">${e.dates}</div><div class="col-span-12 sm:col-span-9 text-xs"><div class="font-bold text-sm">${e.degree}</div><div class="font-semibold text-slate-600">${e.school}</div><div class="text-slate-600">${e.details}</div></div></div>`).join('')}</div>` : '';
+    const rowsPrj = r => r.projects.length ? `<div class="space-y-3">${r.projects.map(p => `<div class="grid grid-cols-12 gap-3 break-inside-avoid"><div class="col-span-12 sm:col-span-3 font-mono text-[10px] text-slate-500 break-all">${p.link}</div><div class="col-span-12 sm:col-span-9 text-xs"><div class="font-bold text-sm">${p.title}</div><p class="text-slate-700">${p.description}</p></div></div>`).join('')}</div>` : '';
+    const cvBody = (r, s) => s('Profile', sum(r)) + s('Education', rowsEdu(r)) + s('Professional Experience', rowsExp(r)) + s('Selected Projects', rowsPrj(r)) + s('Skills', skI(r)) + s('Languages', ulist(L(r.extras.languages))) + s('Certifications', ulist(L(r.extras.certifications)));
+
+    // ----- RESUME layouts -----
     function tplSimple(c) {
         const r = resumeState, p = r.personal;
-        return `<div class="mb-5"><h1 class="text-3xl font-extrabold" style="color:${c}">${p.fullName || 'Your Name'}</h1><p class="text-sm font-semibold text-slate-600">${p.jobTitle}</p><p class="text-xs text-slate-500 mt-1 break-words">${contact(p).join(' · ')}</p></div>${sec('Profile', sum(r))}${sec('Experience', expL(r))}${sec('Education', eduL(r))}${sec('Projects', prjL(r))}${sec('Skills', chips(r, c))}`;
+        return `<div class="mb-5"><h1 class="text-3xl font-extrabold" style="color:${c}">${nm(p)}</h1><p class="text-sm font-semibold text-slate-600">${p.jobTitle}</p><p class="text-xs text-slate-500 mt-1 break-words">${contact(p).join(' · ')}</p></div>${sec('Profile', sum(r))}${sec('Experience', expL(r))}${sec('Education', eduL(r))}${sec('Projects', prjL(r))}${sec('Skills', chips(r, c))}`;
     }
     function tplBanner(c) {
         const r = resumeState, p = r.personal;
-        return `<div class="bleed -m-8 md:-m-10 mb-6 p-8 md:p-10 text-white flex items-center gap-5" style="background:${c}">${pic(r, 'w-24 h-24 rounded-full border-4 border-white')}<div class="min-w-0"><h1 class="text-3xl font-extrabold leading-tight">${p.fullName || 'Your Name'}</h1><p class="text-sm font-semibold opacity-90">${p.jobTitle}</p><p class="text-xs opacity-90 mt-2 break-words">${contact(p).join(' · ')}</p></div></div>${sec('Profile', sum(r))}${sec('Experience', expL(r))}<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">${sec('Education', eduL(r))}${sec('Skills', chips(r, '#0f172a'))}</div>${sec('Projects', prjL(r))}`;
+        return `<div class="bleed -m-8 md:-m-10 mb-6 p-8 md:p-10 text-white flex items-center gap-5" style="background:${c}">${pic(r, 'w-24 h-24 rounded-full border-4 border-white')}<div class="min-w-0"><h1 class="text-3xl font-extrabold leading-tight">${nm(p)}</h1><p class="text-sm font-semibold opacity-90">${p.jobTitle}</p><p class="text-xs opacity-90 mt-2 break-words">${contact(p).join(' · ')}</p></div></div>${sec('Profile', sum(r))}${sec('Experience', expL(r))}<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">${sec('Education', eduL(r))}${sec('Skills', chips(r, '#0f172a'))}</div>${sec('Projects', prjL(r))}`;
     }
     function tplSidebar(c) {
         const r = resumeState, p = r.personal, wh = 'style="color:#fff!important;border-color:rgba(255,255,255,.5)!important"';
-        return `<div class="grid grid-cols-12 gap-5"><aside class="col-span-12 sm:col-span-4 p-4 text-white flex flex-col gap-4 text-xs" style="background:${c}">${pic(r, 'w-24 h-24 rounded-full border-4 border-white mx-auto')}<div class="text-center sm:text-left"><h1 class="text-2xl font-extrabold leading-tight">${p.fullName || 'Your Name'}</h1><p class="font-semibold opacity-90">${p.jobTitle}</p></div><div class="space-y-1 break-words">${contact(p).map(x => `<div>${x}</div>`).join('')}</div>${r.skills.length ? `<div><h2 ${wh} class="font-black uppercase tracking-widest mb-1 border-b pb-1">Skills</h2><ul class="space-y-0.5">${r.skills.map(s => `<li>${s}</li>`).join('')}</ul></div>` : ''}</aside><div class="col-span-12 sm:col-span-8">${sec('Profile', sum(r))}${sec('Experience', expL(r))}${sec('Education', eduL(r))}${sec('Projects', prjL(r))}</div></div>`;
+        return `<div class="grid grid-cols-12 gap-5"><aside class="col-span-12 sm:col-span-4 p-4 text-white flex flex-col gap-4 text-xs" style="background:${c}">${pic(r, 'w-24 h-24 rounded-full border-4 border-white mx-auto')}<div class="text-center sm:text-left"><h1 class="text-2xl font-extrabold leading-tight">${nm(p)}</h1><p class="font-semibold opacity-90">${p.jobTitle}</p></div><div class="space-y-1 break-words">${contact(p).map(x => `<div>${x}</div>`).join('')}</div>${r.skills.length ? `<div><h2 ${wh} class="font-black uppercase tracking-widest mb-1 border-b pb-1">Skills</h2><ul class="space-y-0.5">${r.skills.map(s => `<li>${s}</li>`).join('')}</ul></div>` : ''}</aside><div class="col-span-12 sm:col-span-8">${sec('Profile', sum(r))}${sec('Experience', expL(r))}${sec('Education', eduL(r))}${sec('Projects', prjL(r))}</div></div>`;
     }
     function tplTimeline(c) {
         const r = resumeState, p = r.personal;
         const tl = r.experience.length ? `<div class="border-l-2 pl-5 ml-1 space-y-4" style="border-color:${c}">${r.experience.map(e => `<div class="relative break-inside-avoid"><span class="absolute -left-[27px] top-1 w-3 h-3 rounded-full" style="background:${c}"></span>${jobHead(e)}</div>`).join('')}</div>` : '';
-        return `<div class="flex items-center gap-4 mb-6">${pic(r, 'w-20 h-20 rounded-lg border-2 border-slate-900')}<div class="min-w-0"><h1 class="text-3xl font-extrabold" style="color:${c}">${p.fullName || 'Your Name'}</h1><p class="text-sm font-semibold text-slate-600">${p.jobTitle}</p><p class="text-xs text-slate-500 mt-1 break-words">${contact(p).join(' · ')}</p></div></div>${sec('Profile', sum(r))}${sec('Experience', tl)}<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">${sec('Education', eduL(r))}${sec('Skills', chips(r, c))}</div>${sec('Projects', prjL(r))}`;
+        return `<div class="flex items-center gap-4 mb-6">${pic(r, 'w-20 h-20 rounded-lg border-2 border-slate-900')}<div class="min-w-0"><h1 class="text-3xl font-extrabold" style="color:${c}">${nm(p)}</h1><p class="text-sm font-semibold text-slate-600">${p.jobTitle}</p><p class="text-xs text-slate-500 mt-1 break-words">${contact(p).join(' · ')}</p></div></div>${sec('Profile', sum(r))}${sec('Experience', tl)}<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">${sec('Education', eduL(r))}${sec('Skills', chips(r, c))}</div>${sec('Projects', prjL(r))}`;
     }
-    function renderByTpl(t, c) {
-        return ({executive: renderExecutiveTemplate, compact: renderCompactTemplate, simple: tplSimple, banner: tplBanner, sidebar: tplSidebar, timeline: tplTimeline}[t] || renderModernTemplate)(c);
+    function tplSplit(c) {
+        const r = resumeState, p = r.personal, s = mk('bar', c);
+        return `<div class="grid grid-cols-12 gap-5"><div class="col-span-12 sm:col-span-8 order-2 sm:order-1"><h1 class="text-3xl font-extrabold leading-tight" style="color:${c}">${nm(p)}</h1><p class="text-sm font-semibold text-slate-600 mb-5">${p.jobTitle}</p>${s('Profile', sum(r))}${s('Experience', expL(r))}${s('Projects', prjL(r))}</div><aside class="col-span-12 sm:col-span-4 order-1 sm:order-2 bg-slate-100 p-4 text-xs space-y-4">${pic(r, 'w-24 h-24 rounded-full border-4 mx-auto', 'border-color:' + c)}${sideBox('Contact', contactDivs(p), c)}${sideBox('Education', eduL(r), c)}${sideBox('Skills', ulist(r.skills), c)}</aside></div>`;
+    }
+    function tplLightbar(c) {
+        const r = resumeState, p = r.personal, s = mk('bar', c);
+        return `<div class="grid grid-cols-12 gap-5"><aside class="col-span-12 sm:col-span-4 bg-slate-100 p-4 text-xs space-y-4 border-t-8" style="border-color:${c}">${pic(r, 'w-24 h-24 rounded-full border-4 border-white mx-auto')}${sideBox('Contact', contactDivs(p), c)}${sideBox('Skills', ulist(r.skills), c)}${sideBox('Education', eduL(r), c)}</aside><div class="col-span-12 sm:col-span-8"><h1 class="text-3xl font-extrabold leading-tight">${nm(p)}</h1><p class="text-sm font-bold uppercase tracking-wider mb-5" style="color:${c}">${p.jobTitle}</p>${s('Profile', sum(r))}${s('Experience', expL(r))}${s('Projects', prjL(r))}</div></div>`;
+    }
+    function tplBold(c) {
+        const r = resumeState, p = r.personal, s = mk('pill', c);
+        return `<div class="bleed -m-8 md:-m-10 mb-6"><div class="p-8 md:p-10 text-white flex items-center gap-5" style="background:#0f172a">${pic(r, 'w-24 h-24 rounded-md border-4', 'border-color:' + c)}<div class="min-w-0"><h1 class="text-3xl font-black uppercase tracking-tight leading-tight">${nm(p)}</h1><p class="text-sm font-bold uppercase tracking-widest text-amber-300">${p.jobTitle}</p><p class="text-xs text-slate-300 mt-2 break-words">${contact(p).join(' · ')}</p></div></div><div class="h-2" style="background:${c}"></div></div>${s('Profile', sum(r))}${s('Experience', expL(r))}<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">${s('Education', eduL(r))}${s('Skills', chips(r, c))}</div>${s('Projects', prjL(r))}`;
+    }
+    function tplElegant(c) {
+        const r = resumeState, p = r.personal, s = mk('center', c);
+        return `<div class="text-center mb-6">${pic(r, 'w-24 h-24 rounded-full mx-auto mb-3 border-2', 'border-color:' + c)}<h1 class="text-4xl font-light uppercase tracking-[0.2em]" style="color:${c}">${nm(p)}</h1><div class="flex items-center justify-center gap-3 my-2"><span class="h-px w-16" style="background:${c}"></span><span class="w-2 h-2 rotate-45" style="background:${c}"></span><span class="h-px w-16" style="background:${c}"></span></div><p class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-600">${p.jobTitle}</p><p class="text-xs text-slate-500 mt-2 break-words">${contact(p).join(' · ')}</p></div>${s('Profile', sum(r))}${s('Experience', expL(r))}${s('Education', eduL(r))}${s('Projects', prjL(r))}${s('Skills', skI(r))}`;
+    }
+    function tplCards(c) {
+        const r = resumeState, p = r.personal, s = mk('card', '#0f172a');
+        return `<div class="border-4 border-slate-900 p-4 mb-4 flex items-center gap-4 text-white" style="background:${c};box-shadow:4px 4px 0 0 #0f172a">${pic(r, 'w-20 h-20 border-4 border-slate-900 bg-white')}<div class="min-w-0"><h1 class="text-3xl font-black uppercase leading-tight">${nm(p)}</h1><p class="text-sm font-bold">${p.jobTitle}</p><p class="text-xs mt-1 break-words">${contact(p).join(' · ')}</p></div></div>${s('Profile', sum(r))}${s('Experience', expL(r))}<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4"><div>${s('Education', eduL(r))}${s('Projects', prjL(r))}</div><div>${s('Skills', chips(r, '#0f172a'))}</div></div>`;
+    }
+    function tplStripe(c) {
+        const r = resumeState, p = r.personal, s = mk('rule', c);
+        return `<div class="border-l-8 pl-5" style="border-color:${c}"><div class="flex items-center justify-between gap-4 mb-5"><div class="min-w-0"><h1 class="text-3xl font-extrabold leading-tight">${nm(p)}</h1><p class="text-sm font-bold uppercase tracking-wider" style="color:${c}">${p.jobTitle}</p><p class="text-xs text-slate-500 mt-1 break-words">${contact(p).join(' · ')}</p></div>${pic(r, 'w-24 h-24 rounded-lg border-2 border-slate-900')}</div>${s('Profile', sum(r))}${s('Experience', expL(r))}${s('Education', eduL(r))}${s('Projects', prjL(r))}${s('Skills', chips(r, c))}</div>`;
+    }
+    function tplMinimal(c) {
+        const r = resumeState, p = r.personal, s = mk('plain', c);
+        return `<div class="mb-5"><h1 class="text-2xl font-bold" style="color:${c}">${nm(p)}</h1><p class="text-sm text-slate-600">${p.jobTitle}</p><p class="text-xs text-slate-500 mt-1 break-words">${contact(p).join(' | ')}</p></div>${s('Summary', sum(r))}${s('Experience', expL(r))}${s('Education', eduL(r))}${s('Projects', prjL(r))}${s('Skills', skI(r))}`;
+    }
+    function tplTwotone(c) {
+        const r = resumeState, p = r.personal, s = mk('under', c);
+        return `<div class="flex flex-wrap justify-between items-end gap-3 pb-3 mb-5 border-b-4" style="border-color:${c}"><div class="min-w-0"><h1 class="text-3xl font-extrabold leading-tight">${nm(p)}</h1><p class="text-sm font-semibold" style="color:${c}">${p.jobTitle}</p></div><div class="text-xs text-slate-600 sm:text-right space-y-0.5 break-words">${contactDivs(p)}</div></div>${s('Profile', sum(r))}${s('Experience', expL(r))}<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">${s('Education', eduL(r))}${s('Skills', chips(r, c))}</div>${s('Projects', prjL(r))}`;
+    }
+
+    // ----- CV layouts (education first, dates column, languages and certifications built in) -----
+    function tplCvClassic(c) {
+        const r = resumeState, p = r.personal, s = mk('center', c);
+        return `<div class="text-center mb-5 pb-3 border-b-4 border-double border-slate-900">${pic(r, 'w-24 h-24 rounded-full mx-auto mb-3 border-2 border-slate-900')}<h1 class="text-3xl font-black uppercase tracking-[0.15em]" style="color:${c}">${nm(p)}</h1><p class="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-500 mt-1">Curriculum Vitae</p><p class="text-sm font-semibold text-slate-700 mt-2">${p.jobTitle}</p><p class="text-xs text-slate-600 mt-1 break-words">${contact(p).join(' · ')}</p></div>${cvBody(r, s)}`;
+    }
+    function tplCvTwocol(c) {
+        const r = resumeState, p = r.personal, s = mk('bar', c);
+        return `<div class="flex items-center justify-between gap-4 mb-6 pb-4 border-b-2 border-slate-900"><div class="min-w-0"><p class="text-[11px] font-bold uppercase tracking-[0.3em] text-slate-500">Curriculum Vitae</p><h1 class="text-3xl font-extrabold leading-tight" style="color:${c}">${nm(p)}</h1><p class="text-sm font-semibold text-slate-600">${p.jobTitle}</p><p class="text-xs text-slate-500 mt-1 break-words">${contact(p).join(' · ')}</p></div>${pic(r, 'w-24 h-28 rounded-sm border-2 border-slate-900')}</div>${cvBody(r, s)}`;
+    }
+    function tplCvModern(c) {
+        const r = resumeState, p = r.personal, s = mk('under', c);
+        return `<div class="flex items-center gap-4 mb-6">${pic(r, 'w-24 h-24 rounded-full border-4', 'border-color:' + c)}<div class="min-w-0"><h1 class="text-3xl font-extrabold leading-tight">${nm(p)}</h1><p class="text-sm font-bold uppercase tracking-wider" style="color:${c}">${p.jobTitle}</p><p class="text-xs text-slate-500 mt-1 break-words">${contact(p).join(' · ')}</p></div></div>${s('Profile', sum(r))}${s('Education', eduL(r))}${s('Professional Experience', expL(r))}${s('Selected Projects', prjL(r))}${s('Skills', chips(r, c))}<div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">${s('Languages', ulist(L(r.extras.languages)))}${s('Certifications', ulist(L(r.extras.certifications)))}</div>`;
+    }
+    function tplCvFormal(c) {
+        const r = resumeState, p = r.personal, s = mk('rule', c);
+        const rows = [['Name', p.fullName], ['Title', p.jobTitle], ['Email', p.email], ['Phone', p.phone], ['Address', p.location], ['Website', p.website]].filter(x => x[1])
+            .map(x => `<tr><td class="font-bold text-slate-500 w-28 py-0.5 align-top">${x[0]}</td><td class="break-words">${x[1]}</td></tr>`).join('');
+        return `<div class="flex justify-between items-start gap-4 mb-6"><div><h1 class="text-3xl font-black uppercase tracking-widest" style="color:${c}">Curriculum Vitae</h1><div class="h-1 w-24 mt-2" style="background:${c}"></div></div>${pic(r, 'w-24 h-28 border-2 border-slate-900')}</div><section class="mb-5">${H.rule('Personal Details', c)}<table class="text-xs w-full"><tbody>${rows}</tbody></table></section>${cvBody(r, s)}`;
+    }
+    function tplCvBanner(c) {
+        const r = resumeState, p = r.personal, s = mk('pill', c);
+        return `<div class="bleed -m-8 md:-m-10 mb-6 p-8 md:p-10 text-white flex items-center gap-5" style="background:${c}">${pic(r, 'w-24 h-24 rounded-full border-4 border-white')}<div class="min-w-0"><p class="text-[11px] font-bold uppercase tracking-[0.3em] opacity-80">Curriculum Vitae</p><h1 class="text-3xl font-extrabold leading-tight">${nm(p)}</h1><p class="text-sm font-semibold opacity-90">${p.jobTitle}</p><p class="text-xs opacity-90 mt-2 break-words">${contact(p).join(' · ')}</p></div></div>${cvBody(r, s)}`;
+    }
+    function tplCvSidebar(c) {
+        const r = resumeState, p = r.personal, s = mk('rule', c), wh = 'style="color:#fff!important;border-color:rgba(255,255,255,.5)!important"';
+        const side = (t, b) => b ? `<div><h2 ${wh} class="font-black uppercase tracking-widest mb-1 pb-1 border-b">${t}</h2>${b}</div>` : '';
+        return `<div class="grid grid-cols-12 gap-5"><aside class="col-span-12 sm:col-span-4 p-4 text-white text-xs space-y-4" style="background:${c}">${pic(r, 'w-28 h-28 rounded-full border-4 border-white mx-auto')}<div class="text-center sm:text-left"><h1 class="text-2xl font-extrabold leading-tight">${nm(p)}</h1><p class="font-semibold opacity-90">${p.jobTitle}</p></div>${side('Contact', contactDivs(p))}${side('Skills', ulist(r.skills))}${side('Languages', ulist(L(r.extras.languages)))}${side('Certifications', ulist(L(r.extras.certifications)))}</aside><div class="col-span-12 sm:col-span-8">${s('Profile', sum(r))}${s('Education', eduL(r))}${s('Professional Experience', expL(r))}${s('Selected Projects', prjL(r))}</div></div>`;
+    }
+    function tplCvExecutive(c) {
+        const r = resumeState, p = r.personal, s = mk('rule', c);
+        return `<div class="mb-5 pb-3 border-b-4 flex items-end justify-between gap-4" style="border-color:${c}"><div class="min-w-0"><h1 class="text-4xl font-black uppercase tracking-tight leading-none">${nm(p)}</h1><p class="text-sm font-bold uppercase tracking-widest mt-2" style="color:${c}">${p.jobTitle}</p><p class="text-xs text-slate-500 mt-1 break-words">${contact(p).join(' · ')}</p></div>${pic(r, 'w-24 h-24 rounded-lg border-2 border-slate-900')}</div><div class="grid grid-cols-12 gap-6"><div class="col-span-12 sm:col-span-8">${s('Profile', sum(r))}${s('Education', eduL(r))}${s('Professional Experience', expL(r))}${s('Selected Projects', prjL(r))}</div><div class="col-span-12 sm:col-span-4">${s('Skills', chips(r, c))}${s('Languages', ulist(L(r.extras.languages)))}${s('Certifications', ulist(L(r.extras.certifications)))}</div></div>`;
+    }
+    function tplCvMinimal(c) {
+        const r = resumeState, p = r.personal, s = mk('plain', c);
+        return `<div class="mb-6"><h1 class="text-3xl font-light tracking-wide" style="color:${c}">${nm(p)}</h1><p class="text-sm text-slate-600">${p.jobTitle}</p><p class="text-xs text-slate-500 mt-1 break-words">${contact(p).join(' | ')}</p></div>${cvBody(r, s)}`;
+    }
+
+    const RENDERERS = {
+        modern: renderModernTemplate, executive: renderExecutiveTemplate, compact: renderCompactTemplate, simple: tplSimple,
+        minimal: tplMinimal, twotone: tplTwotone, elegant: tplElegant, banner: tplBanner, bold: tplBold, cards: tplCards, stripe: tplStripe,
+        sidebar: tplSidebar, lightbar: tplLightbar, split: tplSplit, timeline: tplTimeline,
+        'cv-classic': tplCvClassic, 'cv-twocol': tplCvTwocol, 'cv-modern': tplCvModern, 'cv-formal': tplCvFormal,
+        'cv-banner': tplCvBanner, 'cv-sidebar': tplCvSidebar, 'cv-executive': tplCvExecutive, 'cv-minimal': tplCvMinimal
+    };
+    function renderByTpl(t, c) { return (RENDERERS[t] || renderModernTemplate)(c); }
+
+    function printResume() {
+        const kind = resumeState.config.docType === 'cv' ? 'CV' : 'Resume', old = document.title;
+        document.title = ((resumeState.personal.fullName || kind).trim() + ' - ' + kind);
+        window.print(); setTimeout(() => document.title = old, 500);
     }
 
     // ----- UI injection (runs inside the existing injectUI) -----
-    function injectPro() {
-        const hdr = document.querySelector('header button[title="Toggle Theme"]');
-        const hb = 'px-3 py-2 text-xs font-bold border-2 border-slate-900 dark:border-slate-100 shadow-neo-sm';
-        hdr.insertAdjacentHTML('beforebegin', `<button id="upgrade-btn" onclick="openUpgrade()" class="${hb} bg-amber-400 text-slate-900"><i class="fa-solid fa-crown md:mr-1"></i><span class="hidden md:inline">Go Pro</span></button><button id="acct-btn" class="${hb} bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100" aria-label="Account"></button>`);
-        $$('config-template').closest('.grid').insertAdjacentHTML('afterend', `<div class="mt-4 pt-3 border-t-2 border-slate-900 dark:border-slate-100"><div class="text-xs font-extrabold uppercase mb-2">Advanced styling ${PROB}</div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label class="block text-xs font-bold uppercase mb-1">Line spacing</label><select id="adv-spacing" onchange="updateCustomizer()" class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-100 font-bold text-xs p-2"><option value="">Normal</option><option value="1.35">Tight</option><option value="1.8">Relaxed</option></select></div><label class="flex items-center gap-2 text-xs font-bold uppercase pt-5"><input type="checkbox" id="adv-tint" onchange="updateCustomizer()" class="w-4 h-4"> Tint section headings</label></div><p class="text-[11px] text-slate-500 mt-2">Custom colors: use the rainbow swatch next to Accent Color.</p></div>`);
-        $$('acc-personal').insertAdjacentHTML('afterbegin', `<div class="md:col-span-2 flex items-center gap-3"><div id="photo-thumb" class="w-16 h-16 border-2 border-slate-900 dark:border-slate-100 bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-hidden shrink-0"></div><div class="flex flex-wrap gap-2 items-center"><button onclick="pickPhoto()" class="px-3 py-2 text-xs font-bold bg-amber-300 text-slate-900 border-2 border-slate-900 shadow-neo-sm"><i class="fa-solid fa-camera mr-1"></i>Upload photo<span id="photo-lock">${PROB}</span></button><button onclick="removePhoto()" class="px-3 py-2 text-xs font-bold border-2 border-slate-900 dark:border-slate-100">Remove</button><p class="w-full text-[11px] text-slate-500">Shown in the Pro templates.</p></div><input type="file" id="photo-file" accept="image/*" class="hidden" onchange="onPhoto(this.files[0]);this.value=''"></div>`);
+    function injectFree() {
+        const sel = 'w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-100 font-bold text-xs p-2';
+        const grid = $$('config-template').closest('.grid');
+        grid.insertAdjacentHTML('afterbegin', `<div><label class="block text-xs font-extrabold uppercase mb-1">Document Type</label><select id="config-doctype" onchange="updateCustomizer()" class="${sel}"><option value="resume">Resume</option><option value="cv">CV (Curriculum Vitae)</option></select></div>`);
+        grid.insertAdjacentHTML('afterend', `<div class="mt-4 pt-3 border-t-2 border-slate-900 dark:border-slate-100"><div class="text-xs font-extrabold uppercase mb-2">Advanced styling</div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label class="block text-xs font-bold uppercase mb-1">Line spacing</label><select id="adv-spacing" onchange="updateCustomizer()" class="${sel}"><option value="">Normal</option><option value="1.35">Tight</option><option value="1.8">Relaxed</option></select></div><label class="flex items-center gap-2 text-xs font-bold uppercase pt-5"><input type="checkbox" id="adv-tint" onchange="updateCustomizer()" class="w-4 h-4"> Tint section headings</label></div><p class="text-[11px] text-slate-500 mt-2">Any color: use the color picker at the end of the swatches. Layouts marked 📷 show your photo.</p></div>`);
+        buildLayoutOptions('resume'); buildFontOptions();
+        const sw = document.querySelector('[onclick^="setAccentColor"]').parentElement; sw.classList.add('flex-wrap');
+        $$('accent-custom').insertAdjacentHTML('beforebegin', COLORS.map(x => `<button onclick="setAccentColor('${x[0]}')" class="w-6 h-6 rounded-full border-2 border-slate-900 focus:scale-110" style="background:${x[0]}" title="${x[1]}"></button>`).join(''));
+        $$('acc-personal').insertAdjacentHTML('afterbegin', `<div class="md:col-span-2 flex items-center gap-3"><div id="photo-thumb" class="w-16 h-16 border-2 border-slate-900 dark:border-slate-100 bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-hidden shrink-0"></div><div class="flex flex-wrap gap-2 items-center"><button onclick="pickPhoto()" class="px-3 py-2 text-xs font-bold bg-amber-300 text-slate-900 border-2 border-slate-900 shadow-neo-sm"><i class="fa-solid fa-camera mr-1"></i>Upload photo</button><button onclick="removePhoto()" class="px-3 py-2 text-xs font-bold border-2 border-slate-900 dark:border-slate-100">Remove</button><p class="w-full text-[11px] text-slate-500">Free. Stays on your device. Shown in layouts marked 📷.</p></div><input type="file" id="photo-file" accept="image/*" class="hidden" onchange="onPhoto(this.files[0]);this.value=''"></div>`);
         document.body.insertAdjacentHTML('beforeend', `<div id="mbar" class="lg:hidden no-print fixed bottom-3 left-1/2 -translate-x-1/2 z-40 flex bg-white dark:bg-slate-800 border-4 border-slate-900 dark:border-slate-100 shadow-neo"><button id="mb-edit" onclick="switchMobileTab('editor')" class="px-5 py-3 font-black text-xs uppercase"><i class="fa-solid fa-pen-to-square mr-1"></i>Edit</button><button id="mb-prev" onclick="switchMobileTab('preview')" class="px-5 py-3 font-black text-xs uppercase"><i class="fa-solid fa-eye mr-1"></i>Live preview</button></div>`);
-        setMbar('editor'); refreshLocks();
+        setMbar('editor');
     }
     function setMbar(tab) {
         const on = 'bg-amber-400 text-slate-900', off = '';
         $$('mb-edit').className = 'px-5 py-3 font-black text-xs uppercase ' + (tab === 'editor' ? on : off);
         $$('mb-prev').className = 'px-5 py-3 font-black text-xs uppercase ' + (tab === 'preview' ? on : off);
     }
-    const _inj = injectUI; injectUI = function () { _inj(); injectPro(); };
+    const _inj = injectUI; injectUI = function () { _inj(); injectFree(); };
     const _tab = switchMobileTab; switchMobileTab = function (t) { _tab(t); setMbar(t); window.scrollTo(0, 0); };
     </script>
-
     <script>
-    // ===== AI FILL (Firebase AI Logic + Gemini) =====
-    const AI_CFG = {
-        firebase: {
-            apiKey: "AIzaSyA1lxi2873G0X_p7Nwn_lDM1SuWscWhwiY",
-            authDomain: "resume-builder-96ec4.firebaseapp.com",
-            projectId: "resume-builder-96ec4",
-            storageBucket: "resume-builder-96ec4.firebasestorage.app",
-            messagingSenderId: "334034843850",
-            appId: "1:334034843850:web:765dda7ff2d052840a1c33",
-            measurementId: "G-NN52NJ54SZ"
-        },
-        sdk: 'https://www.gstatic.com/firebasejs/12.0.0/',   // bump if a newer SDK version is wanted
-        model: 'gemini-2.5-flash',                           // change here if Google retires this model
-        proOnly: false,                                      // true = AI Fill becomes a Pro feature
-        freeDaily: 5,                                        // placeholder soft limit for free users (browser-side only)
-        maxChars: 4000
-    };
-    const AI_SYS = `You turn a person's free-form description of their background into resume data.
-Rules:
-- Use ONLY facts the person stated. Never invent employers, job titles, dates, degrees, numbers, links or contact details. If something is not stated, return an empty string (or an empty array).
-- Reword achievements into concise, professional bullet lines that start with a strong action verb. Keep any numbers exactly as given; never add metrics.
-- Put every achievement on its own line, each line starting with "• ".
-- If no summary is given, write a 2-sentence professional summary built only from the stated facts.
-- Write in the same language as the description. Order jobs and education newest first.
-- skills: short items (e.g. "SEO"). languages: e.g. "English (Native)". certifications: one per item.`;
-    let _aiModel = null, aiSnap = null;
-
-    async function aiGetModel() {
-        if (_aiModel) return _aiModel;
-        const [{ initializeApp }, { getAI, getGenerativeModel, GoogleAIBackend, Schema }] = await Promise.all([import(AI_CFG.sdk + 'firebase-app.js'), import(AI_CFG.sdk + 'firebase-ai.js')]);
-        const app = initializeApp(AI_CFG.firebase), ai = getAI(app, { backend: new GoogleAIBackend() });
-        const str = () => Schema.string(), obj = p => Schema.object({ properties: p }), arr = i => Schema.array({ items: i });
-        const schema = obj({
-            personal: obj({ fullName: str(), jobTitle: str(), email: str(), phone: str(), location: str(), website: str(), summary: str() }),
-            experience: arr(obj({ jobTitle: str(), company: str(), dates: str(), location: str(), description: str() })),
-            education: arr(obj({ degree: str(), school: str(), dates: str(), details: str() })),
-            projects: arr(obj({ title: str(), link: str(), description: str() })),
-            skills: arr(str()), languages: arr(str()), certifications: arr(str())
+    // ===== NARRATIVE LAYOUT, OPTIONAL SECTIONS, CUSTOM SECTIONS, PDF + WORD DOWNLOADS =====
+    // Narrative text (used by the on-screen layout and by the Word file). Works on plain or escaped data.
+    function narrative(r) {
+        const out = [], p = r.personal, cfg = r.config || {};
+        const sentence = s => { s = String(s || '').trim().replace(/^[•\-*·]\s*/, ''); return !s ? '' : (/[.!?]$/.test(s) ? s : s + '.'); };
+        const flat = d => L(d).map(sentence).filter(Boolean).join(' ');
+        const join = a => a.length < 3 ? a.join(' and ') : a.slice(0, -1).join(', ') + ', and ' + a[a.length - 1];
+        if (p.summary && p.summary.trim()) out.push(p.summary.trim());
+        r.experience.forEach(e => {
+            if (!e.jobTitle && !e.company && !String(e.description).trim()) return;
+            let lead = e.jobTitle ? 'Worked as ' + e.jobTitle : 'Held a position';
+            if (e.company) lead += ' at ' + e.company;
+            if (e.location) lead += ' in ' + e.location;
+            if (e.dates) lead += ' (' + e.dates + ')';
+            out.push((lead + '. ' + flat(e.description)).trim());
         });
-        _aiModel = getGenerativeModel(ai, { model: AI_CFG.model, systemInstruction: AI_SYS, generationConfig: { responseMimeType: 'application/json', responseSchema: schema } });
-        return _aiModel;
-    }
-    async function aiGenerate(text) {
-        const m = await aiGetModel();
-        const res = await Promise.race([m.generateContent('Description:\n"""\n' + text + '\n"""'), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 45000))]);
-        return JSON.parse(res.response.text());
-    }
-
-    function aiUsage(inc) {
-        const day = new Date().toISOString().slice(0, 10); let u = { day, n: 0 };
-        try { const v = JSON.parse(localStorage.getItem('cr-ai-usage')); if (v && v.day === day) u = v; } catch (e) {}
-        if (inc) { u.n++; try { localStorage.setItem('cr-ai-usage', JSON.stringify(u)); } catch (e) {} }
-        return u.n;
-    }
-    function aiErrMsg(e) {
-        const m = String((e && e.message) || e);
-        if (/timeout/i.test(m)) return 'The AI took too long. Please try again.';
-        if (/403|permission|not been used|disabled|PERMISSION_DENIED/i.test(m)) return 'AI is not switched on for this project yet. In the Firebase console open AI Services > Firebase AI Logic and click Get started (Gemini Developer API).';
-        if (/429|quota|rate/i.test(m)) return 'Too many requests right now. Wait a minute and try again.';
-        if (/JSON|Unexpected token/i.test(m)) return 'The AI returned something unreadable. Please try again.';
-        if (/network|fetch|Failed to load|import|module/i.test(m)) return 'Could not reach the AI service. Check your connection and open the page over http(s) rather than as a local file.';
-        return 'Something went wrong: ' + m.slice(0, 140);
-    }
-
-    const AI_EXAMPLE = "I'm Kwame Asante, a marketing manager in Accra. Since 2021 I've worked at Zenith Foods leading a team of 5; I ran campaigns that grew our Instagram followers from 8k to 40k and cut ad spend per lead by 20%. Before that I was a marketing assistant at Brightline Agency from 2018 to 2021. I have a BSc in Business Administration from KNUST (2014-2018). Skills: SEO, Canva, Google Analytics, copywriting, team leadership. I speak English and Twi. Email kwame@example.com, phone 024 000 0000.";
-
-    function openAI() {
-        if (AI_CFG.proOnly && !gate('AI Fill')) return;
-        const merge = hasData();
-        modal(`<h2 class="text-lg font-black uppercase mb-1"><i class="fa-solid fa-robot mr-2"></i>AI Fill</h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Describe your background in your own words: jobs, dates, education, skills, contact details. The AI fills in every section for you to review.</p>
-        <textarea id="ai-text" rows="8" maxlength="${AI_CFG.maxChars}" oninput="$$('ai-count').textContent=this.value.length+'/${AI_CFG.maxChars}'" placeholder="e.g. I'm a nurse in Kumasi with 6 years at ..." class="${INP}"></textarea>
-        <div class="flex justify-between text-[11px] mt-1 mb-3"><button class="underline font-bold" onclick="$$('ai-text').value=AI_EXAMPLE;$$('ai-count').textContent=AI_EXAMPLE.length+'/${AI_CFG.maxChars}'">Use an example</button><span id="ai-count">0/${AI_CFG.maxChars}</span></div>
-        <div class="text-xs font-bold mb-3 flex flex-col gap-1"><label><input type="radio" name="ai-mode" value="merge" ${merge ? 'checked' : ''}> Add to what I already have</label><label><input type="radio" name="ai-mode" value="replace" ${merge ? '' : 'checked'}> Replace my whole resume</label></div>
-        <p id="ai-err" role="alert" class="text-xs font-bold text-rose-600 mb-2 min-h-[1rem]"></p>
-        <button id="ai-go" onclick="aiRun()" class="${BTN}">Generate</button>
-        <p class="text-[10px] text-slate-500 mt-3">Your text is sent to Google's Gemini through Firebase to generate the content. Don't include anything you wouldn't put on a resume, and always check the result.</p>`);
-    }
-    async function aiRun() {
-        const text = $$('ai-text').value.trim(), err = $$('ai-err'), btn = $$('ai-go');
-        if (text.length < 30) { err.textContent = 'Tell me a bit more (at least a couple of sentences).'; return; }
-        if (!isPro() && aiUsage() >= AI_CFG.freeDaily) { err.textContent = `You've used today's ${AI_CFG.freeDaily} free AI fills. Upgrade to Pro for unlimited use.`; return; }
-        const mode = (document.querySelector('input[name="ai-mode"]:checked') || {}).value || 'merge';
-        btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Writing your resume...'; err.textContent = '';
-        try { const d = await aiGenerate(text); aiUsage(true); closeModal(); applyAI(d, mode); }
-        catch (e) { err.textContent = aiErrMsg(e); btn.disabled = false; btn.textContent = 'Generate'; }
-    }
-
-    function applyAI(d, mode) {
-        ensureShape(); aiSnap = JSON.stringify(resumeState);
-        const r = resumeState, P = (d && d.personal) || {};
-        const S = (v, n = 400) => String(v == null ? '' : v).trim().slice(0, n);
-        const bullets = t => t.split('\n').map(l => l.trim()).filter(Boolean).map(l => l.startsWith('•') ? l : '• ' + l.replace(/^[-*]\s*/, '')).join('\n');
-        if (mode === 'replace') { r.personal = {}; r.experience = []; r.education = []; r.projects = []; r.skills = []; r.extras = { languages: '', certifications: '' }; }
-        ['fullName','jobTitle','email','phone','location','website','summary'].forEach(k => { if (!S(r.personal[k])) r.personal[k] = S(P[k], k === 'summary' ? 1200 : 200); });
-        const before = r.experience.length + r.education.length + r.projects.length + r.skills.length;
-        const list = (k, key) => (Array.isArray(d[k]) ? d[k] : []).slice(0, 15).forEach(it => {
-            const o = { id: uid(k) }; FIELDS[k].forEach(x => o[x] = S(it && it[x], x === 'description' ? 3000 : 300));
-            if (k === 'experience') o.description = bullets(o.description);
-            if (!o[key[0]] && !o[key[1]]) return;
-            const sig = x => (x[key[0]] + '|' + x[key[1]]).toLowerCase();
-            if (!r[k].some(x => sig(x) === sig(o))) r[k].push(o);
+        const ed = r.education.map(e => {
+            if (!e.degree && !e.school) return '';
+            return (e.degree ? 'Earned ' + e.degree + (e.school ? ' from ' + e.school : '') : 'Studied at ' + e.school) + (e.dates ? ' (' + e.dates + ')' : '') + '.' + (e.details ? ' ' + sentence(e.details) : '');
+        }).filter(Boolean);
+        if (ed.length) out.push(ed.join(' '));
+        const prj = cfg.showProjects === false ? [] : r.projects.filter(x => x.title || x.description).map(x => (x.title || 'Project') + (x.link ? ' (' + x.link + ')' : '') + (x.description ? ': ' + sentence(x.description) : '.'));
+        if (prj.length) out.push(prj.join(' '));
+        if (r.skills.length) out.push('Core skills include ' + join(r.skills) + '.');
+        const extra = [];
+        const lg = L(r.extras.languages), ce = L(r.extras.certifications);
+        if (lg.length) extra.push('Speaks ' + join(lg) + '.');
+        if (ce.length) extra.push('Certifications include ' + join(ce) + '.');
+        if (extra.length) out.push(extra.join(' '));
+        (cfg.customOn ? r.custom || [] : []).forEach(x => {
+            const body = flat(x.body), t = String(x.title || '').trim();
+            if (body) out.push((t ? t + ': ' : '') + body);
         });
-        list('experience', ['jobTitle','company']); list('education', ['degree','school']); list('projects', ['title','link']);
-        (Array.isArray(d.skills) ? d.skills : []).slice(0, 40).map(x => S(x, 60)).filter(Boolean).forEach(x => { if (!r.skills.some(y => y.toLowerCase() === x.toLowerCase())) r.skills.push(x); });
-        ['languages','certifications'].forEach(k => {
-            const cur = r.extras[k].split('\n').map(x => x.trim()).filter(Boolean);
-            (Array.isArray(d[k]) ? d[k] : []).slice(0, 15).map(x => S(x, 120)).filter(Boolean).forEach(x => { if (!cur.some(c => c.toLowerCase() === x.toLowerCase())) cur.push(x); });
-            r.extras[k] = cur.join('\n');
-        });
-        fillAll();
-        const u = $$('ai-undo'); if (u) u.classList.remove('hidden');
-        showToast('AI filled your resume. Please review it.');
-        return r.experience.length + r.education.length + r.projects.length + r.skills.length - before;
+        return out;
     }
-    function aiUndo() {
-        if (!aiSnap) return;
-        resumeState = JSON.parse(aiSnap); aiSnap = null; fillAll();
-        $$('ai-undo').classList.add('hidden'); showToast('AI changes undone');
+    function tplSummary(c) {
+        const r = resumeState, p = r.personal;
+        return `<div class="mb-5 overflow-hidden">${pic(r, 'float-right ml-4 mb-2 w-24 h-24 rounded-full border-2', 'border-color:' + c)}<h1 class="text-3xl font-extrabold leading-tight" style="color:${c}">${nm(p)}</h1><p class="text-sm font-semibold text-slate-600">${p.jobTitle}</p><p class="text-xs text-slate-500 mt-1 break-words">${contact(p).join(' · ')}</p></div><div class="space-y-3 text-[13px] leading-relaxed text-slate-800">${narrative(r).map(x => `<p>${x}</p>`).join('')}</div>`;
+    }
+    LAYOUTS.resume.splice(4, 0, ['summary', 'Narrative Summary (no sections)', 1]);
+    LAYOUTS.cv.splice(4, 0, ['cv-summary', 'Narrative Summary (no sections)', 1]);
+    TPL_TYPE['summary'] = 'resume'; TPL_TYPE['cv-summary'] = 'cv'; CV_TPLS.add('cv-summary');
+    RENDERERS['summary'] = tplSummary; RENDERERS['cv-summary'] = tplSummary;
+    const INLINE_EXTRAS = new Set([...CV_TPLS, 'summary']);
+
+    // ----- custom sections -----
+    FIELDS.custom = ['title', 'body']; LIST_RENDERERS.custom = 'renderCustomFormList';
+    const HEAD_OF = { minimal: 'plain', twotone: 'under', elegant: 'center', bold: 'pill', cards: 'card', lightbar: 'bar', split: 'bar', 'cv-classic': 'center', 'cv-twocol': 'bar', 'cv-modern': 'under', 'cv-banner': 'pill', 'cv-minimal': 'plain' };
+    function customBody(txt) {
+        const ls = L(txt); if (!ls.length) return '';
+        if (ls.length === 1) return `<p class="text-xs text-slate-700 leading-relaxed">${ls[0]}</p>`;
+        return `<ul class="text-xs text-slate-700 space-y-0.5 list-disc pl-4">${ls.map(x => `<li>${x.replace(/^[•\-*·]\s*/, '')}</li>`).join('')}</ul>`;
+    }
+    function customHTML(r, c, t) {
+        if (t === 'summary' || t === 'cv-summary') return '';
+        const st = HEAD_OF[t] || 'rule', s = mk(st, st === 'card' ? '#0f172a' : c);
+        return (r.custom || []).map(x => s(String(x.title || '').trim() || 'Additional', customBody(x.body))).join('');
+    }
+    function renderCustomFormList() {
+        const box = $$('custom-container'); if (!box) return;
+        const inp = 'border border-slate-900 dark:border-slate-100 p-1.5 text-xs font-medium dark:bg-slate-800';
+        box.innerHTML = '';
+        (resumeState.custom || []).forEach((it, i) => {
+            const card = document.createElement('div');
+            card.className = 'border-2 border-slate-900 dark:border-slate-100 p-3 bg-slate-50 dark:bg-slate-900 flex flex-col gap-2 relative';
+            card.innerHTML = `<button onclick="removeCustomItem('${it.id}')" class="absolute top-2 right-2 text-rose-600 hover:text-rose-700 p-1" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
+                <div class="font-extrabold text-xs uppercase text-blue-600">Custom section #${i + 1}</div>
+                <input type="text" placeholder="Section title (e.g. Volunteering)" value="${it.title}" oninput="updateCustomField('${it.id}','title',this.value)" class="${inp}">
+                <textarea rows="3" placeholder="Details. One item per line, or write a short paragraph." oninput="updateCustomField('${it.id}','body',this.value)" class="w-full ${inp}">${it.body}</textarea>`;
+            box.appendChild(card);
+        });
+    }
+    wrapList('custom', 'custom-container');
+    function addCustomItem(title) {
+        resumeState.custom.push({ id: uid('custom'), title: typeof title === 'string' ? title : '', body: '' });
+        renderCustomFormList(); renderResume();
+    }
+    function updateCustomField(id, f, v) { const it = resumeState.custom.find(x => x.id === id); if (it) { it[f] = v; renderResume(); } }
+    function removeCustomItem(id) { resumeState.custom = resumeState.custom.filter(x => x.id !== id); renderCustomFormList(); renderResume(); }
+
+    const _fill = fillAll; fillAll = function () { _fill(); renderCustomFormList(); };
+
+    // ----- optional section switches -----
+    function toggleOpt() {
+        const c = resumeState.config; c.showProjects = $$('opt-projects').checked; c.customOn = $$('opt-custom').checked;
+        renderResume();
+        if (c.customOn) { const a = $$('acc-custom'); if (a.classList.contains('hidden')) toggleAccordion('acc-custom'); }
+    }
+    function syncOptional(c) {
+        const pj = $$('opt-projects'), cu = $$('opt-custom'); if (!pj || !cu) return;
+        pj.checked = c.showProjects !== false; cu.checked = !!c.customOn;
+        $$('acc-projects').parentElement.classList.toggle('hidden', c.showProjects === false);
+        $$('acc-custom-wrap').classList.toggle('hidden', !c.customOn);
+    }
+    const _applyAdv = applyAdv; applyAdv = function (real, target) { _applyAdv(real, target); syncOptional(real.config); };
+
+    function injectOptional() {
+        const sw = (id, label, hint) => `<label class="flex items-center justify-between gap-3 cursor-pointer select-none"><span class="text-xs font-bold">${label}<span class="block text-[11px] font-medium text-slate-500">${hint}</span></span><span class="relative inline-block shrink-0"><input type="checkbox" id="${id}" onchange="toggleOpt()" class="peer sr-only"><span class="block w-11 h-6 bg-slate-300 border-2 border-slate-900 dark:border-slate-100 peer-checked:bg-emerald-400 peer-focus-visible:ring-2 peer-focus-visible:ring-blue-500"></span><span class="absolute top-[2px] left-[2px] w-5 h-5 bg-white border-2 border-slate-900 transition-transform peer-checked:translate-x-5"></span></span></label>`;
+        $$('adv-spacing').closest('.mt-4').insertAdjacentHTML('afterend', `<div class="mt-4 pt-3 border-t-2 border-slate-900 dark:border-slate-100"><div class="text-xs font-extrabold uppercase mb-3">Optional sections</div><div class="flex flex-col gap-3">${sw('opt-projects', 'Portfolio / Projects', 'Turn off to hide it from your document.')}${sw('opt-custom', 'Custom sections', 'Turn on to add your own sections (Volunteering, Awards, Publications...).')}</div></div>`);
+        $$('acc-extras').parentElement.insertAdjacentHTML('afterend', `<div id="acc-custom-wrap" class="hidden bg-white dark:bg-slate-800 border-4 border-slate-900 dark:border-slate-100 shadow-neo dark:shadow-neo-dark overflow-hidden">
+            <button onclick="toggleAccordion('acc-custom')" class="w-full p-4 bg-slate-100 dark:bg-slate-700 text-left font-black text-sm uppercase flex justify-between items-center border-b-2 border-slate-900 dark:border-slate-100"><span><i class="fa-solid fa-layer-group text-blue-600 dark:text-blue-400 mr-2"></i> 7. Custom Sections</span><i id="acc-custom-icon" class="fa-solid fa-chevron-down transition-transform" style="transform:rotate(180deg)"></i></button>
+            <div id="acc-custom" class="p-4 flex flex-col gap-4">
+              <p class="text-xs text-slate-500 dark:text-slate-400">Add anything else you want on your document. Pick a quick start or write your own title.</p>
+              <div class="flex flex-wrap gap-1.5">${['Volunteering', 'Awards', 'Publications', 'References', 'Hobbies', 'Interests', 'Courses'].map(x => `<button onclick="addCustomItem('${x}')" class="px-2 py-1 text-[11px] font-bold bg-amber-300 text-slate-900 border-2 border-slate-900 shadow-neo-sm">+ ${x}</button>`).join('')}</div>
+              <div id="custom-container" class="flex flex-col gap-4"></div>
+              <button onclick="addCustomItem()" class="w-full py-2 bg-emerald-400 hover:bg-emerald-500 text-slate-900 font-bold text-xs uppercase border-2 border-slate-900 shadow-neo-sm transition-all"><i class="fa-solid fa-plus mr-1"></i> Add Custom Section</button>
+            </div></div>`);
+    }
+    const _inj2 = injectUI; injectUI = function () { _inj2(); injectOptional(); };
+
+    // ----- downloads (PDF + Word) -----
+    function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('Could not load ' + src)); document.head.append(s); }); }
+    const _libs = {};
+    function needLib(key, ok, src) { if (ok()) return Promise.resolve(); return _libs[key] || (_libs[key] = loadScript(src).catch(e => { delete _libs[key]; throw e; })); }
+    function saveBlob(blob, name) {
+        const url = URL.createObjectURL(blob), a = document.createElement('a');
+        a.href = url; a.download = name; a.rel = 'noopener'; document.body.append(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
+    const fileBase = () => ((resumeState.personal.fullName || '').replace(/[\\/:*?"<>|]+/g, '').trim().replace(/\s+/g, '-') || 'My') + (resumeState.config.docType === 'cv' ? '-CV' : '-Resume');
+    let _busy = false;
+    async function withBusy(msg, fn) {
+        if (_busy) return; _busy = true; showToast(msg);
+        const btns = [...document.querySelectorAll('[data-export]')]; btns.forEach(b => b.disabled = true);
+        try { syncPersonalState(); syncExtras(); await fn(); }
+        catch (e) { console.error(e); showToast(/Could not load/.test(e.message) ? 'Could not load the download tool. Check your internet connection and try again.' : 'Could not create the file. Please try again.'); }
+        finally { _busy = false; btns.forEach(b => b.disabled = false); }
     }
 
-    function injectAI() {
-        const hb = 'px-3 py-2 text-xs font-bold border-2 border-slate-900 dark:border-slate-100 shadow-neo-sm';
-        $$('upgrade-btn').insertAdjacentHTML('beforebegin', `<button onclick="openAI()" class="${hb} bg-purple-400 text-slate-900" aria-label="AI Fill"><i class="fa-solid fa-robot md:mr-1"></i><span class="hidden md:inline">AI Fill</span></button>`);
-        $$('panel-editor').insertAdjacentHTML('afterbegin', `<div class="bg-purple-300 text-slate-900 border-4 border-slate-900 shadow-neo p-4 flex flex-wrap items-center gap-3"><i class="fa-solid fa-robot text-2xl"></i><div class="flex-1 min-w-[180px]"><div class="font-black uppercase text-sm">Let AI write it for you</div><div class="text-xs font-medium">Describe yourself in plain words and every section is filled in.</div></div><button onclick="openAI()" class="px-4 py-2 bg-white font-black text-xs uppercase border-2 border-slate-900 shadow-neo-sm">Try AI Fill</button><button id="ai-undo" onclick="aiUndo()" class="hidden px-3 py-2 bg-white text-xs font-bold border-2 border-slate-900">Undo AI fill</button></div>`);
+    async function downloadPDF() {
+        await withBusy('Preparing your PDF...', async () => {
+            renderResume();
+            await Promise.all([
+                needLib('h2i', () => window.htmlToImage, 'https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js'),
+                needLib('jspdf', () => window.jspdf, 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+            ]);
+            // Render the document in a hidden A4-wide frame so phones and desktops produce the same page.
+            const W = 794, PH = 1123, EDGE = 40, K = resumeState.config.scale || 1;
+            const target = $$('resume-render-target').cloneNode(true); target.style.zoom = '';
+            const css = [...document.head.querySelectorAll('style, link[rel="stylesheet"]')].map(n => n.outerHTML).join('\n');
+            const html = `<!DOCTYPE html><html class="light"><head><meta charset="utf-8">${css}<style>html{font-size:${16 * K}px}html,body{margin:0;background:#fff}#xp{width:${W}px;box-sizing:border-box;padding:2.5rem;background:#fff;color:#0f172a}</style></head><body><div id="xp" class="resume-paper ${resumeState.config.font}">${target.outerHTML}</div></body></html>`;
+            const fr = document.createElement('iframe'); fr.setAttribute('aria-hidden', 'true');
+            fr.style.cssText = `position:fixed;left:-10000px;top:0;width:${W}px;height:${PH}px;border:0;`;
+            document.body.append(fr);
+            try {
+                await new Promise((res, rej) => { fr.onload = res; fr.onerror = rej; fr.srcdoc = html; });
+                const doc = fr.contentDocument;
+                if (doc.fonts && doc.fonts.ready) await doc.fonts.ready;
+                await new Promise(r => setTimeout(r, 300));
+                const el = doc.getElementById('xp'), H = Math.ceil(el.scrollHeight);
+                fr.style.height = Math.max(H, PH) + 'px';
+                const s = Math.min(2, Math.sqrt(12e6 / (W * H)));
+                const draw = () => window.htmlToImage.toCanvas(el, { pixelRatio: s, backgroundColor: '#ffffff', width: W, height: H, cacheBust: false });
+                const blank = cv => { const t = document.createElement('canvas'); t.width = 200; t.height = Math.max(1, Math.round(200 * cv.height / cv.width)); const x = t.getContext('2d'); x.drawImage(cv, 0, 0, t.width, t.height); const d = x.getImageData(0, 0, t.width, t.height).data; for (let i = 0; i < d.length; i += 4) if (d[i] < 250 || d[i + 1] < 250 || d[i + 2] < 250) return false; return true; };
+                let canvas = await draw();                 // some phones need a second pass before the first image has content
+                if (blank(canvas)) canvas = await draw();
+                if (blank(canvas)) { showToast('Could not draw the PDF on this device. Choose "Save as PDF" in the print window.'); printResume(); return; }
+                // choose page breaks that do not cut through a line, entry or heading
+                const base = el.getBoundingClientRect().top;
+                const boxes = [...el.querySelectorAll('.break-inside-avoid, h2, h3, p, li, tr, img')].map(n => { const b = n.getBoundingClientRect(); return [b.top - base, b.bottom - base, n.tagName === 'H2']; });
+                const slices = []; let y = 0;
+                while (y < H - 2) {
+                    const cap = slices.length ? PH - 2 * EDGE : PH - EDGE, lastCap = slices.length ? PH - EDGE : PH; let end = Math.min(H, y + cap);
+                    if (H - y <= lastCap) end = H;
+                    else if (end < H) { let best = null; boxes.forEach(b => { if (b[0] < end - 1 && b[1] > end + 1 && b[0] > y + cap * 0.3) best = best === null ? b[0] : Math.min(best, b[0]); }); if (best !== null) end = best; }
+                    if (end < H) boxes.forEach(b => { if (b[2] && b[1] <= end + 1 && b[1] > end - 70 && b[0] > y + cap * 0.3) end = Math.min(end, b[0]); });
+                    slices.push([y, end]); y = end;
+                }
+                const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', compress: true }), k = 210 / W, sc = canvas.width / W;
+                slices.forEach((sl, i) => {
+                    if (i) pdf.addPage();
+                    const part = document.createElement('canvas'); part.width = canvas.width; part.height = Math.max(1, Math.round((sl[1] - sl[0]) * sc));
+                    const ctx = part.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, part.width, part.height);
+                    ctx.drawImage(canvas, 0, Math.round(sl[0] * sc), canvas.width, part.height, 0, 0, canvas.width, part.height);
+                    pdf.addImage(part.toDataURL('image/jpeg', 0.95), 'JPEG', 0, i ? EDGE * k : 0, 210, (sl[1] - sl[0]) * k);
+                });
+                saveBlob(pdf.output('blob'), fileBase() + '.pdf');
+            } finally { fr.remove(); }
+        });
     }
-    const _inj3 = injectUI; injectUI = function () { _inj3(); injectAI(); };
+
+    function buildDocx(photoBytes) {
+        const D = window.docx, r = resumeState, p = r.personal, cfg = r.config, cv = cfg.docType === 'cv', tpl = cfg.template;
+        const narr = tpl === 'summary' || tpl === 'cv-summary', plainHead = narr || tpl === 'minimal' || tpl === 'cv-minimal';
+        const ACC = (/^#[0-9a-f]{6}$/i.test(cfg.accentColor) ? cfg.accentColor.slice(1) : '2563EB').toUpperCase();
+        const FONT = { 'font-serif-merriweather': 'Cambria', 'font-mono-fira': 'Consolas', 'font-serif-playfair': 'Georgia', 'font-lora': 'Georgia', 'font-mont': 'Arial', 'font-raleway': 'Arial', 'font-space': 'Arial' }[cfg.font] || 'Calibri';
+        const K = cfg.scale || 1, S = n => Math.round(n * K), GREY = '475569', LIGHT = '64748B', W = 9638;
+        const run = (text, o = {}) => new D.TextRun(Object.assign({ text: String(text), font: FONT, size: S(21) }, o));
+        const P = (kids, o = {}) => new D.Paragraph(Object.assign({ children: kids, spacing: { after: 60 } }, o));
+        const strip = s => String(s).replace(/^[•\-*·]\s*/, '');
+        const out = [];
+        const head = title => {
+            if (narr) return;
+            if (plainHead) return out.push(P([run(title.toUpperCase(), { bold: true, size: S(19), color: LIGHT })], { spacing: { before: 200, after: 60 }, keepNext: true }));
+            out.push(P([run(title.toUpperCase(), { bold: true, size: S(22), color: ACC })], { spacing: { before: 220, after: 80 }, keepNext: true, border: { bottom: { style: D.BorderStyle.SINGLE, size: 8, color: ACC, space: 2 } } }));
+        };
+        const lines = L;
+        const desc = txt => lines(txt).forEach(l => out.push(/^[•\-*·]\s*/.test(l) ? new D.Paragraph({ children: [run(strip(l))], bullet: { level: 0 }, spacing: { after: 30 } }) : P([run(l)])));
+        const entry = (title, right, sub, d) => {
+            out.push(P([run(title, { bold: true, size: S(22) }), new D.TextRun({ children: [new D.Tab(), right || ''], font: FONT, size: S(19), color: LIGHT })], { tabStops: [{ type: D.TabStopType.RIGHT, position: W }], spacing: { before: 100, after: 20 }, keepNext: true }));
+            if (sub) out.push(P([run(sub, { italics: true, color: GREY, size: S(20) })], { spacing: { after: 40 }, keepNext: !!d }));
+            desc(d);
+        };
+
+        // header (with photo when there is one)
+        const left = [];
+        if (cv) left.push(P([run('CURRICULUM VITAE', { bold: true, size: S(17), color: LIGHT, characterSpacing: 60 })], { spacing: { after: 20 } }));
+        left.push(P([run(p.fullName || 'Your Name', { bold: true, size: S(56), color: ACC })], { spacing: { after: 40 } }));
+        if (p.jobTitle) left.push(P([run(p.jobTitle, { size: S(26), color: GREY })], { spacing: { after: 40 } }));
+        const ct = [p.email, p.phone, p.location, p.website].filter(Boolean);
+        if (ct.length) left.push(P([run(ct.join('  |  '), { size: S(19), color: LIGHT })], { spacing: { after: 80 } }));
+        if (photoBytes) {
+            const u8 = photoBytes;
+            const none = { style: D.BorderStyle.NONE, size: 0, color: 'FFFFFF' }, nb = { top: none, bottom: none, left: none, right: none };
+            out.push(new D.Table({
+                width: { size: W, type: D.WidthType.DXA }, columnWidths: [W - 1700, 1700], borders: Object.assign({ insideHorizontal: none, insideVertical: none }, nb),
+                rows: [new D.TableRow({ children: [
+                    new D.TableCell({ children: left, width: { size: W - 1700, type: D.WidthType.DXA }, borders: nb }),
+                    new D.TableCell({ children: [P([new D.ImageRun({ data: u8, type: 'png', transformation: { width: 96, height: 96 } })], { alignment: D.AlignmentType.RIGHT })], width: { size: 1700, type: D.WidthType.DXA }, borders: nb })
+                ] })]
+            }));
+        } else out.push(...left);
+
+        if (narr) {
+            narrative(r).forEach(t => out.push(P([run(t)], { spacing: { after: 140, line: 300 } })));
+        } else {
+            const sProfile = () => { if (p.summary && p.summary.trim()) { head('Profile'); lines(p.summary).forEach(l => out.push(P([run(l)]))); } };
+            const sExp = () => { if (!r.experience.length) return; head(cv ? 'Professional Experience' : 'Experience'); r.experience.forEach(e => entry(e.jobTitle || 'Job Title', e.dates, [e.company, e.location].filter(Boolean).join(' | '), e.description)); };
+            const sEdu = () => { if (!r.education.length) return; head('Education'); r.education.forEach(e => entry(e.degree || 'Degree', e.dates, e.school, e.details)); };
+            const sPrj = () => { if (!r.projects.length || cfg.showProjects === false) return; head(cv ? 'Selected Projects' : 'Projects'); r.projects.forEach(x => entry(x.title || 'Project', x.link, '', x.description)); };
+            const sSkills = () => { if (r.skills.length) { head('Skills'); out.push(P([run(r.skills.join('  ·  '))])); } };
+            const sExtra = () => { [['Languages', r.extras.languages], ['Certifications', r.extras.certifications]].forEach(x => { const ls = lines(x[1]); if (ls.length) { head(x[0]); ls.forEach(l => out.push(P([run(l)], { spacing: { after: 20 } }))); } }); };
+            const sCustom = () => { if (!cfg.customOn) return; (r.custom || []).forEach(x => { const t = String(x.title || '').trim(), ls = lines(x.body); if (!ls.length) return; head(t || 'Additional'); ls.length > 1 ? ls.forEach(l => out.push(new D.Paragraph({ children: [run(strip(l))], bullet: { level: 0 }, spacing: { after: 30 } }))) : ls.forEach(l => out.push(P([run(l)]))); }); };
+            (cv ? [sProfile, sEdu, sExp, sPrj, sSkills, sExtra, sCustom] : [sProfile, sExp, sEdu, sPrj, sSkills, sExtra, sCustom]).forEach(f => f());
+        }
+        return new D.Document({
+            creator: 'CraftResume', title: (p.fullName || 'My') + (cv ? ' - CV' : ' - Resume'),
+            styles: { default: { document: { run: { font: FONT, size: S(21) } } } },
+            sections: [{ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1000, right: 1134, bottom: 1000, left: 1134 } } }, children: out }]
+        });
+    }
+    function photoToPng(src) {
+        return new Promise(res => {
+            if (!src) return res(null);
+            const im = new Image();
+            im.onload = () => { const c = document.createElement('canvas'); c.width = c.height = 300; c.getContext('2d').drawImage(im, 0, 0, 300, 300); c.toBlob(b => b ? b.arrayBuffer().then(a => res(new Uint8Array(a)), () => res(null)) : res(null), 'image/png'); };
+            im.onerror = () => res(null); im.src = src;
+        });
+    }
+    async function downloadWord() {
+        await withBusy('Preparing your Word file...', async () => {
+            renderResume();
+            await needLib('docx', () => window.docx, 'https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js');
+            const blob = await window.docx.Packer.toBlob(buildDocx(await photoToPng(resumeState.photo)));
+            saveBlob(blob, fileBase() + '.docx');
+        });
+    }
     </script>
 <script>
         // Swap the default icon for logo.* if one exists in this folder
